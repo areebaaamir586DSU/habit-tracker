@@ -1839,18 +1839,22 @@ var voiceChatHistory=[];
 var voiceAvailable=('webkitSpeechRecognition' in window||'SpeechRecognition' in window);
 var ttsAvailable='speechSynthesis' in window;
 var voiceLoadInterval=null;
+var voiceSynthesisActive=false;
 
 function toggleVoicePanel(){
 voicePanelOpen=!voicePanelOpen;
 var panel=document.getElementById('voicePanel');
 var fab=document.getElementById('voiceFab');
-if(voicePanelOpen){panel.classList.add('open');fab.style.display='none';if(voiceChatHistory.length===0){
+if(voicePanelOpen){panel.classList.add('open');fab.style.display='none';
+if(ttsAvailable){try{voiceSynth.resume()}catch(e){}}
+if(voiceChatHistory.length===0){
 var greeting='Hello! I am your AI Voice Assistant. ';
 if(!voiceAvailable)greeting+='Voice recognition is not available in this browser. Use the text box below to type messages. ';
 else greeting+='Tap the microphone and tell me about your habits! ';
 greeting+='You can:\n\u2022 Ask "how are my habits today?"\n\u2022 Say "create habit: exercise daily"\n\u2022 Ask for motivation\n\u2022 Check your streaks';
 addVoiceMessage(greeting,'ai');
-voiceLoadVoices()}}
+voiceLoadVoices();
+setTimeout(function(){if(voiceSpeechEnabled)voiceSpeak('Hello! I am your AI Voice Assistant. Tap the microphone to start.')},500)}}
 else{panel.classList.remove('open');fab.style.display='flex';voiceStopListening()}}
 
 function voiceLoadVoices(){
@@ -2062,11 +2066,11 @@ if(shouldSpeak&&voiceSpeechEnabled){voiceSpeak(response)}}
 
 function voiceSpeak(text){
 if(!ttsAvailable){return}
-voiceSynth.cancel();
 var clean=text.replace(/[^\w\s.,!?'-]/g,'').replace(/\*\*/g,'').replace(/\n/g,' ').substring(0,300);
 if(!clean.trim())return;
+try{
 var utter=new SpeechSynthesisUtterance(clean);
-utter.rate=1;utter.pitch=1;utter.volume=1;
+utter.rate=1.05;utter.pitch=1;utter.volume=1;
 utter.lang='en-US';
 var voices=voiceSynth.getVoices();
 if(voices.length>0){
@@ -2075,10 +2079,12 @@ if(preferred)utter.voice=preferred}
 var fab=document.getElementById('voiceFab');
 var status=document.getElementById('voiceLiveStatus');
 var headerStatus=document.getElementById('voiceStatusText');
-utter.onstart=function(){if(fab)fab.classList.add('speaking');if(status)status.textContent='Speaking...';if(headerStatus)headerStatus.textContent='Speaking...'};
-utter.onend=function(){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(headerStatus)headerStatus.textContent='Tap mic to start'};
-utter.onerror=function(){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(headerStatus)headerStatus.textContent='Tap mic to start'};
-try{voiceSynth.speak(utter)}catch(e){}}
+utter.onstart=function(){if(fab)fab.classList.add('speaking');if(status)status.textContent='Speaking...';if(headerStatus)headerStatus.textContent='Speaking...';voiceSynthesisActive=true};
+utter.onend=function(){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(headerStatus)headerStatus.textContent='Tap mic to start';voiceSynthesisActive=false};
+utter.onerror=function(e){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(headerStatus)headerStatus.textContent='Tap mic to start';voiceSynthesisActive=false};
+voiceSynth.cancel();
+voiceSynth.speak(utter);
+}catch(e){}}
 
 function voiceToggleSpeech(){
 voiceSpeechEnabled=!voiceSpeechEnabled;
