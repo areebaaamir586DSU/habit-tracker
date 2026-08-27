@@ -455,6 +455,43 @@ canvas{width:100%!important;height:100%!important}
 .ai-action-card:hover{border-color:var(--accent);transform:translateY(-1px)}
 .ai-action-card .action-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px}
 .ai-action-card .action-desc{font-size:11px;color:var(--text-muted)}
+.voice-assistant-fab{position:fixed;bottom:100px;right:24px;z-index:850;width:64px;height:64px;border-radius:50%;background:var(--gradient-1);border:none;cursor:pointer;box-shadow:0 6px 30px rgba(99,102,241,0.5);transition:all 0.3s ease;display:flex;align-items:center;justify-content:center;font-size:28px;color:white}
+.voice-assistant-fab:hover{transform:scale(1.1);box-shadow:0 8px 40px rgba(99,102,241,0.6)}
+.voice-assistant-fab.listening{animation:voicePulseBig 1.5s ease-in-out infinite;background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 6px 30px rgba(239,68,68,0.5)}
+.voice-assistant-fab.speaking{animation:speakingPulse 0.8s ease-in-out infinite alternate;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 6px 30px rgba(16,185,129,0.5)}
+@keyframes voicePulseBig{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{transform:scale(1.05);box-shadow:0 0 0 20px rgba(239,68,68,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+@keyframes speakingPulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+.voice-panel{position:fixed;bottom:176px;right:24px;width:380px;max-height:520px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,0.3);z-index:860;display:none;flex-direction:column;overflow:hidden;animation:voicePanelIn 0.3s ease}
+.voice-panel.open{display:flex}
+@keyframes voicePanelIn{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.voice-panel-header{padding:16px 20px;background:var(--gradient-1);display:flex;align-items:center;gap:12px}
+.voice-panel-header .avatar{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px}
+.voice-panel-header .info h4{font-size:15px;font-weight:700;color:white}
+.voice-panel-header .info p{font-size:11px;color:rgba(255,255,255,0.8)}
+.voice-panel-header .close-btn{margin-left:auto;background:none;border:none;color:white;font-size:18px;cursor:pointer;padding:4px;border-radius:8px}
+.voice-panel-header .close-btn:hover{background:rgba(255,255,255,0.2)}
+.voice-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:320px}
+.voice-msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;animation:aiMsgIn 0.3s ease}
+.voice-msg.user{align-self:flex-end;background:var(--gradient-1);color:white;border-bottom-right-radius:4px}
+.voice-msg.ai{align-self:flex-start;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-bottom-left-radius:4px}
+.voice-msg.ai .voice-msg-avatar{font-size:16px;margin-right:6px}
+.voice-status{padding:12px 20px;border-top:1px solid var(--border);text-align:center}
+.voice-status .status-text{font-size:12px;color:var(--text-muted);margin-bottom:8px}
+.voice-wave{display:flex;align-items:center;justify-content:center;gap:3px;height:32px}
+.voice-wave .bar{width:4px;height:8px;border-radius:4px;background:var(--accent);transition:height 0.15s ease}
+.voice-wave.active .bar{animation:voiceWaveAnim 0.6s ease-in-out infinite}
+.voice-wave.active .bar:nth-child(2){animation-delay:0.1s}
+.voice-wave.active .bar:nth-child(3){animation-delay:0.2s}
+.voice-wave.active .bar:nth-child(4){animation-delay:0.3s}
+.voice-wave.active .bar:nth-child(5){animation-delay:0.4s}
+@keyframes voiceWaveAnim{0%,100%{height:6px}50%{height:24px}}
+.voice-controls{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:center}
+.voice-ctrl-btn{width:48px;height:48px;border-radius:50%;border:2px solid var(--border);background:var(--bg-glass);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.voice-ctrl-btn:hover{border-color:var(--accent);background:rgba(99,102,241,0.1)}
+.voice-ctrl-btn.active{border-color:var(--accent);background:var(--accent);color:white}
+.voice-ctrl-btn.mic{width:56px;height:56px;font-size:24px;border-color:var(--accent)}
+.voice-ctrl-btn.mic.recording{background:linear-gradient(135deg,#ef4444,#dc2626);border-color:#ef4444;color:white;animation:micPulse 1s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
 </style>
 </head>
 <body>
@@ -1049,6 +1086,28 @@ canvas{width:100%!important;height:100%!important}
 </div>
 <button class="fab-main" id="fabMain" onclick="toggleFab()">+</button>
 </div>
+
+<div class="voice-panel" id="voicePanel">
+<div class="voice-panel-header">
+<div class="avatar">&#129302;</div>
+<div class="info"><h4>Habit AI Voice</h4><p id="voiceStatusText">Tap mic to start</p></div>
+<button class="close-btn" onclick="toggleVoicePanel()">&#10005;</button>
+</div>
+<div class="voice-messages" id="voiceMessages"></div>
+<div class="voice-status">
+<div class="status-text" id="voiceLiveStatus">Ready to listen</div>
+<div class="voice-wave" id="voiceWave">
+<div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+</div>
+</div>
+<div class="voice-controls">
+<button class="voice-ctrl-btn" onclick="voiceToggleSpeech()" id="voiceSpeechToggle" title="Toggle voice responses">&#128266;</button>
+<button class="voice-ctrl-btn mic" id="voiceMicBtn" onclick="voiceToggleMic()" title="Hold to speak">&#127908;</button>
+<button class="voice-ctrl-btn" onclick="clearVoiceChat()" title="Clear chat">&#128465;</button>
+</div>
+</div>
+
+<button class="voice-assistant-fab" id="voiceFab" onclick="toggleVoicePanel()" title="AI Voice Assistant">&#129302;</button>
 </div>
 <script>
 var profiles=JSON.parse(localStorage.getItem('profiles'))||null;
@@ -1699,7 +1758,213 @@ function renderAITab(){
 renderAIInsights();renderAISuggestions();renderAIWeeklyReport();
 if(aiChatHistory.length===0){
 addChatMessage('Hey! \u{1F44B} I am **Habit AI**, your personal habit coach.\n\nI can help you with:\n\u2022 Track your daily progress\n\u2022 Suggest new habits\n\u2022 Predict your streaks\n\u2022 Give motivation & advice\n\u2022 Create habits from chat\n\nJust type a message or use the quick buttons below!','ai')}}
-// ============ END AI MODULE ============
+
+// ============ VOICE ASSISTANT MODULE ============
+var voicePanelOpen=false;
+var voiceListening=false;
+var voiceSpeechEnabled=true;
+var voiceRecognition=null;
+var voiceSynth=window.speechSynthesis;
+var voiceChatHistory=[];
+
+function toggleVoicePanel(){
+voicePanelOpen=!voicePanelOpen;
+var panel=document.getElementById('voicePanel');
+var fab=document.getElementById('voiceFab');
+if(voicePanelOpen){panel.classList.add('open');fab.style.display='none';if(voiceChatHistory.length===0)addVoiceMessage('Hello! I am your AI Voice Assistant. Tap the microphone and tell me about your habits, ask for motivation, or say "create habit" to add one!','ai')}
+else{panel.classList.remove('open');fab.style.display='flex';voiceStopListening()}}
+
+function addVoiceMessage(text,sender){
+var container=document.getElementById('voiceMessages');
+var div=document.createElement('div');
+div.className='voice-msg '+(sender==='user'?'user':'ai');
+if(sender==='ai'){div.innerHTML='<span class="voice-msg-avatar">&#129302;</span>'+text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}
+else{div.textContent=text}
+container.appendChild(div);
+container.scrollTop=container.scrollHeight;
+voiceChatHistory.push({sender:sender,text:text,time:Date.now()})}
+
+function voiceToggleMic(){
+if(voiceListening){voiceStopListening()}
+else{voiceStartListening()}}
+
+function voiceStartListening(){
+if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+addVoiceMessage('Voice recognition is not supported in this browser. Try Chrome or Edge.','ai');
+if(voiceSpeechEnabled)voiceSpeak('Voice recognition is not supported in this browser');
+return}
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+voiceRecognition=new SR();
+voiceRecognition.continuous=false;
+voiceRecognition.interimResults=true;
+voiceRecognition.lang='en-US';
+var micBtn=document.getElementById('voiceMicBtn');
+var wave=document.getElementById('voiceWave');
+var status=document.getElementById('voiceLiveStatus');
+var headerStatus=document.getElementById('voiceStatusText');
+voiceListening=true;
+micBtn.classList.add('recording');
+wave.classList.add('active');
+status.textContent='Listening...';
+headerStatus.textContent='Listening...';
+voiceRecognition.onresult=function(e){
+var transcript='';
+for(var i=e.resultIndex;i<e.results.length;i++){transcript+=e.results[i][0].transcript}
+status.textContent=transcript?'\"'+transcript+'\"':'Listening...';
+if(e.results[e.results.length-1].isComplete){
+voiceStopListening();
+addVoiceMessage(transcript,'user');
+setTimeout(function(){voiceProcessCommand(transcript)},500)}};
+voiceRecognition.onerror=function(e){
+voiceStopListening();
+if(e.error!=='no-speech'){addVoiceMessage('Could not understand. Please try again.','ai');
+if(voiceSpeechEnabled)voiceSpeak('Could not understand. Please try again.')}};
+voiceRecognition.onend=function(){voiceStopListening()};
+voiceRecognition.start()}
+
+function voiceStopListening(){
+voiceListening=false;
+var micBtn=document.getElementById('voiceMicBtn');
+var wave=document.getElementById('voiceWave');
+var status=document.getElementById('voiceLiveStatus');
+var headerStatus=document.getElementById('voiceStatusText');
+micBtn.classList.remove('recording');
+wave.classList.remove('active');
+status.textContent='Ready to listen';
+headerStatus.textContent='Tap mic to start';
+if(voiceRecognition){try{voiceRecognition.stop()}catch(e){}}}
+
+function voiceProcessCommand(cmd){
+var lower=cmd.toLowerCase();
+var response='';
+var shouldSpeak=true;
+
+// Create habit
+if(lower.indexOf('create habit')!==-1||lower.indexOf('add habit')!==-1||lower.indexOf('new habit')!==-1){
+var habitDesc=cmd.replace(/^(create|add|new)\s+habit\s*:?\s*/i,'');
+if(habitDesc.length>3){
+var parsed=aiParseNLPHabit(habitDesc);
+habits.push({id:Date.now().toString(),name:parsed.name,description:'Created via Voice AI',category:parsed.category,priority:parsed.priority,frequency:parsed.frequency,goal:parsed.goal,goalText:parsed.goalText,reminder:'09:00',color:habitColors[Math.floor(Math.random()*habitColors.length)],icon:parsed.icon,restDays:[],tags:[],completions:{},createdAt:new Date().toISOString(),order:habits.length,freezesUsed:0});
+addXP(30);saveProfileData();renderAll();
+response='Habit created! '+parsed.icon+' '+parsed.name+'. You earned 30 XP!';
+triggerConfetti()}else{response='Please say something like: Create habit, exercise 30 minutes daily'}}
+
+// Status check
+else if(lower.match(/how.*(habit|doing|today|status|progress)/i)||lower.match(/what.*status/i)){
+var today=formatDate(new Date());
+var active=habits.filter(function(h){return shouldTrackToday(h,new Date())});
+var completed=active.filter(function(h){return h.completions&&h.completions[today]});
+var pct=active.length>0?Math.round(completed.length/active.length*100):0;
+response='You have completed '+completed.length+' out of '+active.length+' habits today. That is '+pct+' percent. ';
+if(pct===100)response+='Amazing! All done!';
+else if(pct>=50)response+='Good progress! Keep going!';
+else response+='You still have '+active.length-completed.length+' habits left. You can do it!'}
+
+// Streaks
+else if(lower.match(/streak/i)){
+var best=getBestStreak();
+response='Your best streak is '+best+' days. ';
+habits.slice(0,3).forEach(function(h){response+=h.name+': '+getCurrentStreak(h)+' days. '})}
+
+// Motivation
+else if(lower.match(/motivat|encourag|inspire|pump me|boost/i)){
+var quotes=['Every small step counts towards your bigger goal!','Consistency beats intensity. Show up daily!','You are building habits that will define your future.','Progress, not perfection. Keep going!','You have completed '+getTotalCompletions()+' habits so far. That is real progress!'];
+response=quotes[Math.floor(Math.random()*quotes.length)]}
+
+// Level
+else if(lower.match(/level|xp|experience/i)){
+var info=getLevelInfo();
+response='You are Level '+info.level+', '+info.title+'. You have '+xp+' XP out of '+info.needed+' needed for the next level.'}
+
+// Report
+else if(lower.match(/report|summary|week/i)){
+var r=aiGenerateWeeklyReport();
+response='Weekly report: You completed '+r.totalCompleted+' habits with a '+r.avgRate+' percent rate. Best day was '+r.bestDay+'. Top habit: '+r.topHabit+'.'}
+
+// Best time
+else if(lower.match(/best.*time|when.*do/i)){
+var analysis=aiAnalyzePatterns();
+var tod=analysis.patterns.timeOfDay;
+var best=Object.entries(tod).sort(function(a,b){return b[1]-a[1]})[0];
+response=best?'You are most productive during the '+best[0]+'. Schedule your important habits then!':'Complete some habits and I will analyze your best time.'}
+
+// Suggest
+else if(lower.match(/suggest|recommend|what.*should/i)){
+var suggestions=aiGenerateSuggestions();
+if(suggestions.length){response='Here are some suggestions: ';suggestions.slice(0,3).forEach(function(s,i){response+=(i+1)+'. '+s.name+'. '})}
+else{response='You have great coverage! Keep it up!'}}
+
+// Perfect day
+else if(lower.match(/perfect|all.*done/i)){
+var today=formatDate(new Date());
+var active=habits.filter(function(h){return shouldTrackToday(h,new Date())});
+var done=active.filter(function(h){return h.completions&&h.completions[today]});
+if(done.length===active.length&&active.length>0){response='Perfect day! All '+active.length+' habits completed! Amazing work!'}
+else{response='You have '+(active.length-done.length)+' habits left today. You can do it!'}}
+
+// Delete habit
+else if(lower.match(/delete|remove/i)){
+var habitName=cmd.replace(/^(delete|remove)\s+(habit)?\s*/i,'');
+var habit=habits.find(function(h){return h.name.toLowerCase().indexOf(habitName.toLowerCase())!==-1});
+if(habit){habits=habits.filter(function(h){return h.id!==habit.id});saveProfileData();renderAll();response='Deleted habit: '+habit.name}
+else{response='Could not find a habit matching '+habitName}}
+
+// Hello
+else if(lower.match(/hello|hi|hey|good morning|good evening/)){
+response='Hello! How can I help you with your habits today? You can ask about your status, create habits, or get motivation!'}
+
+// Joke
+else if(lower.match(/joke|funny|laugh/i)){
+var jokes=['Why do programmers prefer dark mode? Because light attracts bugs!','I told my wife she was drawing her eyebrows too high. She looked surprised.','Why don\'t scientists trust atoms? Because they make up everything!','What do you call a fake noodle? An impasta!'];
+response=jokes[Math.floor(Math.random()*jokes.length)]+' Now let us get back to building those habits!'}
+
+// Freeze
+else if(lower.match(/freeze/i)){
+response='You have '+streakFreezes+' streak freezes remaining out of 3 maximum. Earn more at every 1000 XP milestones.'}
+
+// Help
+else if(lower.match(/help|what can you do/i)){
+response='I can help you: check your daily status, create habits, get motivation, see streaks, get weekly reports, find your best time, get habit suggestions, and tell jokes. Just speak naturally!'}
+
+else{
+var tips=['Here is a tip: Start with a 2 minute version of any habit.','Fun fact: It takes 66 days on average to form a new habit.','Remember: Missing one day does not break your streak. Just get back on track!','Advice: Track your habits at the same time each day.'];
+response='I heard: '+cmd+'. '+tips[Math.floor(Math.random()*tips.length)]+' Try asking about your status, streaks, or say create habit!'}
+
+addVoiceMessage(response,'ai');
+if(shouldSpeak&&voiceSpeechEnabled){voiceSpeak(response)}}
+
+function voiceSpeak(text){
+if(!voiceSynth)return;
+voiceSynth.cancel();
+var clean=text.replace(/[^\w\s.,!?'-]/g,'').replace(/\*\*/g,'').replace(/\n/g,' ').substring(0,300);
+var utter=new SpeechSynthesisUtterance(clean);
+utter.rate=1;utter.pitch=1;utter.volume=1;
+var voices=voiceSynth.getVoices();
+var preferred=voices.find(function(v){return v.name.indexOf('Google')!==-1&&v.lang.indexOf('en')!==-1})||voices.find(function(v){return v.lang.indexOf('en')!==-1});
+if(preferred)utter.voice=preferred;
+var fab=document.getElementById('voiceFab');
+var status=document.getElementById('voiceLiveStatus');
+var headerStatus=document.getElementById('voiceStatusText');
+utter.onstart=function(){fab.classList.add('speaking');status.textContent='Speaking...';headerStatus.textContent='Speaking...'};
+utter.onend=function(){fab.classList.remove('speaking');status.textContent='Ready to listen';headerStatus.textContent='Tap mic to start'};
+voiceSynth.speak(utter)}
+
+function voiceToggleSpeech(){
+voiceSpeechEnabled=!voiceSpeechEnabled;
+var btn=document.getElementById('voiceSpeechToggle');
+btn.classList.toggle('active',voiceSpeechEnabled);
+btn.innerHTML=voiceSpeechEnabled?'&#128266;':'&#128263;';
+showToast(voiceSpeechEnabled?'Voice responses enabled':'Voice responses muted','info')}
+
+function clearVoiceChat(){
+document.getElementById('voiceMessages').innerHTML='';
+voiceChatHistory=[];
+addVoiceMessage('Chat cleared. Tap the microphone to start a new conversation!','ai')}
+
+// Load voices
+if(voiceSynth){voiceSynth.onvoiceschanged=function(){voiceSynth.getVoices()}}
+
+// ============ END VOICE ASSISTANT MODULE ============
 document.getElementById('habitModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal()});
 document.getElementById('noteModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeNoteModal()});
 document.getElementById('bundleModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeBundleModal()});
