@@ -1836,19 +1836,36 @@ var voiceSpeechEnabled=true;
 var voiceRecognition=null;
 var voiceSynth=window.speechSynthesis;
 var voiceChatHistory=[];
+var voiceAvailable=('webkitSpeechRecognition' in window||'SpeechRecognition' in window);
+var ttsAvailable='speechSynthesis' in window;
+var voiceLoadInterval=null;
 
 function toggleVoicePanel(){
 voicePanelOpen=!voicePanelOpen;
 var panel=document.getElementById('voicePanel');
 var fab=document.getElementById('voiceFab');
-if(voicePanelOpen){panel.classList.add('open');fab.style.display='none';if(voiceChatHistory.length===0)addVoiceMessage('Hello! I am your AI Voice Assistant. Tap the microphone and tell me about your habits, ask for motivation, or say "create habit" to add one!','ai')}
+if(voicePanelOpen){panel.classList.add('open');fab.style.display='none';if(voiceChatHistory.length===0){
+var greeting='Hello! I am your AI Voice Assistant. ';
+if(!voiceAvailable)greeting+='Voice recognition is not available in this browser. Use the text box below to type messages. ';
+else greeting+='Tap the microphone and tell me about your habits! ';
+greeting+='You can:\n\u2022 Ask "how are my habits today?"\n\u2022 Say "create habit: exercise daily"\n\u2022 Ask for motivation\n\u2022 Check your streaks';
+addVoiceMessage(greeting,'ai');
+voiceLoadVoices()}}
 else{panel.classList.remove('open');fab.style.display='flex';voiceStopListening()}}
+
+function voiceLoadVoices(){
+if(ttsAvailable){
+voiceSynth.getVoices();
+if(voiceSynth.getVoices().length===0&&!voiceLoadInterval){
+voiceLoadInterval=setInterval(function(){voiceSynth.getVoices();if(voiceSynth.getVoices().length>0)clearInterval(voiceLoadInterval)},200);
+setTimeout(function(){clearInterval(voiceLoadInterval)},5000)}}}
 
 function addVoiceMessage(text,sender){
 var container=document.getElementById('voiceMessages');
+if(!container)return;
 var div=document.createElement('div');
 div.className='voice-msg '+(sender==='user'?'user':'ai');
-if(sender==='ai'){div.innerHTML='<span class="voice-msg-avatar">&#129302;</span>'+text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}
+if(sender==='ai'){div.innerHTML='<span class="voice-msg-avatar">&#129302;</span>'+text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
 else{div.textContent=text}
 container.appendChild(div);
 container.scrollTop=container.scrollHeight;
@@ -1859,15 +1876,16 @@ if(voiceListening){voiceStopListening()}
 else{voiceStartListening()}}
 
 function voiceStartListening(){
-if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
-addVoiceMessage('Voice recognition is not supported in this browser. Try Chrome or Edge.','ai');
-if(voiceSpeechEnabled)voiceSpeak('Voice recognition is not supported in this browser');
+if(!voiceAvailable){
+addVoiceMessage('Voice recognition is not supported in this browser. Please type your message below.','ai');
+addVoiceTextInput();
 return}
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 voiceRecognition=new SR();
 voiceRecognition.continuous=false;
 voiceRecognition.interimResults=true;
 voiceRecognition.lang='en-US';
+voiceRecognition.maxAlternatives=1;
 var micBtn=document.getElementById('voiceMicBtn');
 var wave=document.getElementById('voiceWave');
 var status=document.getElementById('voiceLiveStatus');
@@ -1879,18 +1897,33 @@ status.textContent='Listening...';
 headerStatus.textContent='Listening...';
 voiceRecognition.onresult=function(e){
 var transcript='';
-for(var i=e.resultIndex;i<e.results.length;i++){transcript+=e.results[i][0].transcript}
+var isFinal=false;
+for(var i=e.resultIndex;i<e.results.length;i++){
+transcript+=e.results[i][0].transcript;
+if(e.results[i].isFinal)isFinal=true}
 status.textContent=transcript?'\"'+transcript+'\"':'Listening...';
-if(e.results[e.results.length-1].isComplete){
+if(isFinal){
 voiceStopListening();
 addVoiceMessage(transcript,'user');
-setTimeout(function(){voiceProcessCommand(transcript)},500)}};
+setTimeout(function(){voiceProcessCommand(transcript)},400)}};
 voiceRecognition.onerror=function(e){
 voiceStopListening();
-if(e.error!=='no-speech'){addVoiceMessage('Could not understand. Please try again.','ai');
-if(voiceSpeechEnabled)voiceSpeak('Could not understand. Please try again.')}};
+if(e.error==='no-speech'){
+status.textContent='No speech detected. Try again.';
+headerStatus.textContent='Tap mic to retry';
+addVoiceMessage('I did not hear anything. Tap the mic again or type below.','ai');
+addVoiceTextInput()}
+else if(e.error==='not-allowed'){
+addVoiceMessage('Microphone access denied. Please allow microphone access in your browser settings, or type below.','ai');
+addVoiceTextInput()}
+else if(e.error!=='aborted'){
+addVoiceMessage('Error: '+e.error+'. Please try again or type below.','ai');
+addVoiceTextInput()}};
 voiceRecognition.onend=function(){voiceStopListening()};
-voiceRecognition.start()}
+try{voiceRecognition.start()}catch(e){
+voiceStopListening();
+addVoiceMessage('Could not start voice recognition. Please type your message below.','ai');
+addVoiceTextInput()}}
 
 function voiceStopListening(){
 voiceListening=false;
@@ -1898,11 +1931,34 @@ var micBtn=document.getElementById('voiceMicBtn');
 var wave=document.getElementById('voiceWave');
 var status=document.getElementById('voiceLiveStatus');
 var headerStatus=document.getElementById('voiceStatusText');
-micBtn.classList.remove('recording');
-wave.classList.remove('active');
-status.textContent='Ready to listen';
-headerStatus.textContent='Tap mic to start';
+if(micBtn)micBtn.classList.remove('recording');
+if(wave)wave.classList.remove('active');
+if(status)status.textContent='Ready to listen';
+if(headerStatus)headerStatus.textContent='Tap mic to start';
 if(voiceRecognition){try{voiceRecognition.stop()}catch(e){}}}
+
+function addVoiceTextInput(){
+var container=document.getElementById('voiceMessages');
+if(!container||document.getElementById('voiceTextInput'))return;
+var div=document.createElement('div');
+div.id='voiceTextInput';
+div.style.cssText='display:flex;gap:8px;padding:8px 0;align-items:center';
+div.innerHTML='<input type="text" id="voiceTextMsg" placeholder="Type your message..." style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:12px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit;outline:none" onkeydown="if(event.key===\'Enter\')voiceSendText()"><button onclick="voiceSendText()" style="padding:8px 14px;border:none;border-radius:20px;background:var(--gradient-1);color:white;font-size:12px;font-weight:600;cursor:pointer">Send</button>';
+container.appendChild(div);
+container.scrollTop=container.scrollHeight;
+var input=div.querySelector('input');
+if(input)setTimeout(function(){input.focus()},100)}
+
+function voiceSendText(){
+var input=document.getElementById('voiceTextMsg');
+if(!input)return;
+var msg=input.value.trim();
+if(!msg)return;
+input.value='';
+var textDiv=document.getElementById('voiceTextInput');
+if(textDiv)textDiv.remove();
+addVoiceMessage(msg,'user');
+setTimeout(function(){voiceProcessCommand(msg)},400)}
 
 function voiceProcessCommand(cmd){
 var lower=cmd.toLowerCase();
@@ -1928,7 +1984,7 @@ var pct=active.length>0?Math.round(completed.length/active.length*100):0;
 response='You have completed '+completed.length+' out of '+active.length+' habits today. That is '+pct+' percent. ';
 if(pct===100)response+='Amazing! All done!';
 else if(pct>=50)response+='Good progress! Keep going!';
-else response+='You still have '+active.length-completed.length+' habits left. You can do it!'}
+else response+='You still have '+(active.length-completed.length)+' habits left. You can do it!'}
 
 // Streaks
 else if(lower.match(/streak/i)){
@@ -1974,7 +2030,8 @@ else{response='You have '+(active.length-done.length)+' habits left today. You c
 
 // Delete habit
 else if(lower.match(/delete|remove/i)){
-var habitName=cmd.replace(/^(delete|remove)\s+(habit)?\s*/i,'');
+var parts=cmd.split(/\s+/);
+var habitName=parts.slice(parts.indexOf('habit')+1||1).join(' ');
 var habit=habits.find(function(h){return h.name.toLowerCase().indexOf(habitName.toLowerCase())!==-1});
 if(habit){habits=habits.filter(function(h){return h.id!==habit.id});saveProfileData();renderAll();response='Deleted habit: '+habit.name}
 else{response='Could not find a habit matching '+habitName}}
@@ -2004,20 +2061,24 @@ addVoiceMessage(response,'ai');
 if(shouldSpeak&&voiceSpeechEnabled){voiceSpeak(response)}}
 
 function voiceSpeak(text){
-if(!voiceSynth)return;
+if(!ttsAvailable){return}
 voiceSynth.cancel();
 var clean=text.replace(/[^\w\s.,!?'-]/g,'').replace(/\*\*/g,'').replace(/\n/g,' ').substring(0,300);
+if(!clean.trim())return;
 var utter=new SpeechSynthesisUtterance(clean);
 utter.rate=1;utter.pitch=1;utter.volume=1;
+utter.lang='en-US';
 var voices=voiceSynth.getVoices();
-var preferred=voices.find(function(v){return v.name.indexOf('Google')!==-1&&v.lang.indexOf('en')!==-1})||voices.find(function(v){return v.lang.indexOf('en')!==-1});
-if(preferred)utter.voice=preferred;
+if(voices.length>0){
+var preferred=voices.find(function(v){return v.name.indexOf('Google')!==-1&&v.lang.indexOf('en')!==-1})||voices.find(function(v){return v.lang.indexOf('en-US')!==-1})||voices.find(function(v){return v.lang.indexOf('en')!==-1});
+if(preferred)utter.voice=preferred}
 var fab=document.getElementById('voiceFab');
 var status=document.getElementById('voiceLiveStatus');
 var headerStatus=document.getElementById('voiceStatusText');
-utter.onstart=function(){fab.classList.add('speaking');status.textContent='Speaking...';headerStatus.textContent='Speaking...'};
-utter.onend=function(){fab.classList.remove('speaking');status.textContent='Ready to listen';headerStatus.textContent='Tap mic to start'};
-voiceSynth.speak(utter)}
+utter.onstart=function(){if(fab)fab.classList.add('speaking');if(status)status.textContent='Speaking...';if(headerStatus)headerStatus.textContent='Speaking...'};
+utter.onend=function(){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(headerStatus)headerStatus.textContent='Tap mic to start'};
+utter.onerror=function(){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(headerStatus)headerStatus.textContent='Tap mic to start'};
+try{voiceSynth.speak(utter)}catch(e){}}
 
 function voiceToggleSpeech(){
 voiceSpeechEnabled=!voiceSpeechEnabled;
@@ -2029,10 +2090,11 @@ showToast(voiceSpeechEnabled?'Voice responses enabled':'Voice responses muted','
 function clearVoiceChat(){
 document.getElementById('voiceMessages').innerHTML='';
 voiceChatHistory=[];
-addVoiceMessage('Chat cleared. Tap the microphone to start a new conversation!','ai')}
+addVoiceMessage('Chat cleared. Tap the microphone to start a new conversation!','ai');
+if(!voiceAvailable)addVoiceTextInput()}
 
 // Load voices
-if(voiceSynth){voiceSynth.onvoiceschanged=function(){voiceSynth.getVoices()}}
+if(ttsAvailable){voiceSynth.onvoiceschanged=function(){voiceSynth.getVoices()};voiceLoadVoices()}
 
 // ============ END VOICE ASSISTANT MODULE ============
 
