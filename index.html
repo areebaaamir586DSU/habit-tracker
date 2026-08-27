@@ -1854,7 +1854,7 @@ else greeting+='Tap the microphone and tell me about your habits! ';
 greeting+='You can:\n\u2022 Ask "how are my habits today?"\n\u2022 Say "create habit: exercise daily"\n\u2022 Ask for motivation\n\u2022 Check your streaks';
 addVoiceMessage(greeting,'ai');
 voiceLoadVoices();
-setTimeout(function(){if(voiceSpeechEnabled)voiceSpeak('Hello! I am your AI Voice Assistant. Tap the microphone to start.')},500)}}
+setTimeout(function(){voiceQueueSpeak('Hello! I am your AI Voice Assistant. Tap the microphone to start.')},500)}}
 else{panel.classList.remove('open');fab.style.display='flex';voiceStopListening()}}
 
 function voiceLoadVoices(){
@@ -1878,6 +1878,26 @@ voiceChatHistory.push({sender:sender,text:text,time:Date.now()})}
 function voiceToggleMic(){
 if(voiceListening){voiceStopListening()}
 else{voiceStartListening()}}
+
+var voicePendingSpeak=null;
+
+function voiceQueueSpeak(text){
+voicePendingSpeak=text;
+if(voiceSpeechEnabled&&ttsAvailable){
+try{voiceSynth.cancel()}catch(e){}
+var utter=new SpeechSynthesisUtterance(text.replace(/[^\w\s.,!?'-]/g,'').replace(/\*\*/g,'').replace(/\n/g,' ').substring(0,300));
+utter.lang='en-US';utter.rate=1.05;utter.pitch=1;utter.volume=1;
+var voices=voiceSynth.getVoices();
+if(voices.length>0){
+var preferred=voices.find(function(v){return v.name.indexOf('Google')!==-1&&v.lang.indexOf('en')!==-1})||voices.find(function(v){return v.lang.indexOf('en-US')!==-1})||voices.find(function(v){return v.lang.indexOf('en')!==-1});
+if(preferred)utter.voice=preferred}
+var fab=document.getElementById('voiceFab');
+var status=document.getElementById('voiceLiveStatus');
+var header=document.getElementById('voiceStatusText');
+utter.onstart=function(){if(fab)fab.classList.add('speaking');if(status)status.textContent='Speaking...';if(header)header.textContent='Speaking...'};
+utter.onend=function(){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(header)header.textContent='Tap mic to start';voicePendingSpeak=null};
+utter.onerror=function(){if(fab)fab.classList.remove('speaking');if(status)status.textContent='Ready to listen';if(header)header.textContent='Tap mic to start'};
+voiceSynth.speak(utter)}}
 
 function voiceStartListening(){
 if(!voiceAvailable){
@@ -2062,7 +2082,7 @@ var tips=['Here is a tip: Start with a 2 minute version of any habit.','Fun fact
 response='I heard: '+cmd+'. '+tips[Math.floor(Math.random()*tips.length)]+' Try asking about your status, streaks, or say create habit!'}
 
 addVoiceMessage(response,'ai');
-if(shouldSpeak&&voiceSpeechEnabled){voiceSpeak(response)}}
+voiceQueueSpeak(response)}
 
 function voiceSpeak(text){
 if(!ttsAvailable){return}
