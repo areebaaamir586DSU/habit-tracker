@@ -437,6 +437,24 @@ canvas{width:100%!important;height:100%!important}
 ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:var(--bg-primary)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
 @keyframes streakMilestone{0%{transform:scale(1)}25%{transform:scale(1.3) rotate(-5deg)}50%{transform:scale(1.5) rotate(5deg)}75%{transform:scale(1.3) rotate(-3deg)}100%{transform:scale(1)}}
 .milestone-anim{animation:streakMilestone 0.6s ease}
+.ai-typing-dots{display:flex;gap:4px;align-items:center}
+.ai-typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:aiTypingDot 1.4s infinite ease-in-out}
+.ai-typing-dots span:nth-child(2){animation-delay:0.2s}
+.ai-typing-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes aiTypingDot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+.ai-quick-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg-glass);color:var(--text-secondary);font-size:11px;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;font-family:inherit}
+.ai-quick-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(99,102,241,0.05);transform:translateY(-1px)}
+.ai-msg{max-width:85%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.6;white-space:pre-line;animation:aiMsgIn 0.3s ease;word-wrap:break-word}
+.ai-msg.user{align-self:flex-end;background:var(--gradient-1);color:white;border-bottom-right-radius:4px}
+.ai-msg.ai{align-self:flex-start;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-bottom-left-radius:4px}
+.ai-msg.ai .ai-msg-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:11px;color:var(--accent);font-weight:700}
+@keyframes aiMsgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ai-msg code{background:rgba(99,102,241,0.1);padding:1px 5px;border-radius:4px;font-size:12px}
+.ai-msg strong{font-weight:700;color:var(--accent)}
+.ai-action-card{background:var(--bg-glass);border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:8px;cursor:pointer;transition:var(--transition)}
+.ai-action-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.ai-action-card .action-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.ai-action-card .action-desc{font-size:11px;color:var(--text-muted)}
 </style>
 </head>
 <body>
@@ -769,42 +787,59 @@ canvas{width:100%!important;height:100%!important}
 <div class="chart-card"><h3>Weekly Water Intake</h3><div class="chart-container"><canvas id="waterChart"></canvas></div></div>
 </div>
 <div class="tab-content" id="tab-ai">
-<h3 style="margin-bottom:16px;font-weight:700">AI Assistant</h3>
-<p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Your personal AI habit coach — get suggestions, predictions, and motivation.</p>
-
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;height:calc(100vh - 200px);min-height:500px">
+<div style="display:flex;flex-direction:column;background:var(--bg-glass);backdrop-filter:var(--blur);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden">
+<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--gradient-1)">
+<div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:20px">&#129302;</div>
+<div><div style="font-size:15px;font-weight:700;color:white">Habit AI</div><div style="font-size:11px;color:rgba(255,255,255,0.8)">Your personal habit coach</div></div>
+<div style="margin-left:auto;display:flex;gap:6px">
+<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;border:none" onclick="clearAIChat()">Clear</button>
+<button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;border:none" onclick="exportAIChat()">Export</button>
+</div>
+</div>
+<div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px"></div>
+<div id="aiTyping" style="padding:0 20px;display:none;align-items:center;gap:8px;color:var(--text-muted);font-size:12px">
+<div class="ai-typing-dots"><span></span><span></span><span></span></div> Habit AI is thinking...
+</div>
+<div id="aiQuickActions" style="padding:8px 16px;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border)">
+<button class="ai-quick-btn" onclick="aiQuickAction('how are my habits today?')">Today's status</button>
+<button class="ai-quick-btn" onclick="aiQuickAction('suggest new habits')">Suggest habits</button>
+<button class="ai-quick-btn" onclick="aiQuickAction('give me motivation')">Motivate me</button>
+<button class="ai-quick-btn" onclick="aiQuickAction('show my weekly report')">Weekly report</button>
+<button class="ai-quick-btn" onclick="aiQuickAction('what should I work on?')">What to improve</button>
+<button class="ai-quick-btn" onclick="aiQuickAction('predict my streaks')">Predict streaks</button>
+<button class="ai-quick-btn" onclick="aiQuickAction('create habit: exercise 30 minutes daily')">Create exercise habit</button>
+<button class="ai-quick-btn" onclick="aiQuickAction('analyze my patterns')">Analyze patterns</button>
+</div>
+<div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+<button class="btn btn-icon btn-secondary" style="width:36px;height:36px;flex-shrink:0" onclick="aiVoiceInput()" title="Voice input">&#127908;</button>
+<input type="text" id="aiChatInput" placeholder="Type a message..." style="flex:1;padding:10px 16px;border:2px solid var(--border);border-radius:24px;font-size:13px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')sendAIMessage()">
+<button class="btn btn-primary" style="border-radius:50%;width:40px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0" onclick="sendAIMessage()">&#10148;</button>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;overflow-y:auto">
 <div class="settings-card" style="margin-bottom:0">
-<h4 style="margin-bottom:12px;font-weight:700">AI Chat</h4>
-<div id="aiChatMessages" style="height:300px;overflow-y:auto;padding:12px;background:var(--bg-primary);border-radius:var(--radius-xs);margin-bottom:12px;border:1px solid var(--border)"></div>
-<div style="display:flex;gap:8px">
-<input type="text" id="aiChatInput" placeholder="Ask me anything about your habits..." style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-xs);font-size:13px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit" onkeydown="if(event.key==='Enter')sendAIMessage()">
-<button class="btn btn-primary btn-sm" onclick="sendAIMessage()">Send</button>
-</div>
-</div>
-<div>
-<div class="settings-card" style="margin-bottom:16px">
-<h4 style="margin-bottom:12px;font-weight:700">AI Insights</h4>
+<h4 style="margin-bottom:12px;font-weight:700">&#128161; AI Insights</h4>
 <div id="aiInsightsPanel"></div>
 </div>
 <div class="settings-card" style="margin-bottom:0">
-<h4 style="margin-bottom:12px;font-weight:700">Smart Suggestions</h4>
+<h4 style="margin-bottom:12px;font-weight:700">&#10024; Smart Suggestions</h4>
 <div id="aiSuggestionsPanel"></div>
 </div>
-</div>
-</div>
-
-<div class="settings-card">
-<h4 style="margin-bottom:12px;font-weight:700">AI Weekly Report</h4>
+<div class="settings-card" style="margin-bottom:0">
+<h4 style="margin-bottom:12px;font-weight:700">&#128202; AI Weekly Report</h4>
 <div id="aiWeeklyReport"></div>
 </div>
-<div class="settings-card">
-<h4 style="margin-bottom:12px;font-weight:700">Natural Language Habit Creation</h4>
-<p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Describe your habit in plain English and AI will create it for you.</p>
+<div class="settings-card" style="margin-bottom:0">
+<h4 style="margin-bottom:12px;font-weight:700">&#127908; Natural Language Habit Creation</h4>
+<p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Or just type in the chat: "Create habit: read 20 pages daily"</p>
 <div style="display:flex;gap:8px">
-<input type="text" id="aiNlpInput" placeholder='e.g. "Read 20 pages of a book every morning"' style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-xs);font-size:13px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit" onkeydown="if(event.key==='Enter')processNLP()">
-<button class="btn btn-primary btn-sm" onclick="processNLP()">Create Habit</button>
+<input type="text" id="aiNlpInput" placeholder='e.g. "Meditate 10 minutes every morning"' style="flex:1;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-xs);font-size:12px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit" onkeydown="if(event.key==='Enter')processNLP()">
+<button class="btn btn-primary btn-sm" onclick="processNLP()">Create</button>
 </div>
-<div id="aiNlpResult" style="margin-top:12px"></div>
+<div id="aiNlpResult" style="margin-top:8px"></div>
+</div>
+</div>
 </div>
 </div>
 
@@ -1246,6 +1281,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal(
 
 // ============ AI ASSISTANT MODULE ============
 var aiChatHistory=[];
+var aiContext={lastTopic:'',mood:'neutral',sessionStart:Date.now()};
 
 function aiAnalyzePatterns(){
 var analysis={bestHabit:null,worstHabit:null,avgStreak:0,bestDay:'',worstDay:'',totalCompletions:getTotalCompletions(),avgRate:getAvgCompletion(),streaks:{},patterns:{},recommendations:[]};
@@ -1265,13 +1301,10 @@ analysis.patterns.timeOfDay=hourCounts;
 var categoryRates={};
 habits.forEach(function(h){if(!categoryRates[h.category])categoryRates[h.category]={total:0,count:0};categoryRates[h.category].total+=getCompletionRate(h);categoryRates[h.category].count++});
 analysis.patterns.category=categoryRates;
-if(analysis.worstHabit&&analysis.worstHabit.rate<50){analysis.recommendations.push({type:'warning',text:'Your habit "'+analysis.worstHabit.name+'" has only '+analysis.worstHabit.rate+'% completion. Consider adjusting the goal or schedule.'})}
-if(analysis.avgRate<60){analysis.recommendations.push({type:'tip',text:'Your overall completion rate is '+analysis.avgRate+'%. Try reducing the number of daily habits to focus on quality.'})}
+if(analysis.worstHabit&&analysis.worstHabit.rate<50)analysis.recommendations.push({type:'warning',text:'Your habit "'+analysis.worstHabit.name+'" has only '+analysis.worstHabit.rate+'% completion. Consider adjusting the goal or schedule.'});
+if(analysis.avgRate<60)analysis.recommendations.push({type:'tip',text:'Your overall completion rate is '+analysis.avgRate+'%. Try reducing the number of daily habits to focus on quality.'});
 var totalDays=habits.length?Math.floor((Date.now()-new Date(habits[0].createdAt))/864e5):0;
-if(totalDays>14&&analysis.avgRate>80){analysis.recommendations.push({type:'success',text:'Great job! You have a '+analysis.avgRate+'% completion rate over '+totalDays+' days. Consider adding a new challenge habit.'})}
-var freeStreaks=habits.filter(function(h){return getCurrentStreak(h)>=7}).length;
-if(freeStreaks>0){analysis.recommendations.push({type:'info',text:freeStreaks+' habit'+(freeStreaks>1?'s have':' has')+' a streak of 7+ days. Keep the momentum going!'})}
-if(Object.keys(hourCounts).length>0){var bestTime=Object.entries(hourCounts).sort(function(a,b){return b[1]-a[1]})[0];analysis.recommendations.push({type:'info',text:'You are most productive in the '+bestTime[0]+'. Schedule important habits during this time.'})}
+if(totalDays>14&&analysis.avgRate>80)analysis.recommendations.push({type:'success',text:'Great job! You have a '+analysis.avgRate+'% completion rate over '+totalDays+' days.'});
 return analysis}
 
 function aiGenerateSuggestions(){
@@ -1279,11 +1312,8 @@ var suggestions=[];
 var analysis=aiAnalyzePatterns();
 var untrackedHabits=['Drink more water','Take a 10-minute walk','Practice gratitude','Learn something new','Stretch for 5 minutes','Read for 15 minutes','Write in journal','Do 10 push-ups'];
 var existingNames=habits.map(function(h){return h.name.toLowerCase()});
-untrackedHabits.forEach(function(h){
-var words=h.toLowerCase().split(' ');
-var exists=existingNames.some(function(n){return words.some(function(w){return n.indexOf(w)!==-1})});
-if(!exists&&suggestions.length<5){suggestions.push({name:h,reason:'Popular habit not yet tracked',icon:'\u2728'})}});
-if(analysis.worstHabit&&analysis.worstHabit.rate<40){suggestions.push({name:'Break "'+analysis.worstHabit.name+'" into smaller steps',reason:'Current completion rate is low',icon:'\u{1F4CB}'})}
+untrackedHabits.forEach(function(h){var words=h.toLowerCase().split(' ');var exists=existingNames.some(function(n){return words.some(function(w){return n.indexOf(w)!==-1})});if(!exists&&suggestions.length<5)suggestions.push({name:h,reason:'Popular habit not yet tracked',icon:'\u2728'})});
+if(analysis.worstHabit&&analysis.worstHabit.rate<40)suggestions.push({name:'Break "'+analysis.worstHabit.name+'" into smaller steps',reason:'Current completion rate is low',icon:'\u{1F4CB}'});
 var categories=habits.map(function(h){return h.category});
 var missing=['health','fitness','mindfulness','learning'].filter(function(c){return categories.indexOf(c)===-1});
 missing.forEach(function(c){suggestions.push({name:'Add a '+c+' habit',reason:'You have no habits in this category',icon:'\u{1F3A8}'})});
@@ -1299,46 +1329,205 @@ var consistency=daysSinceCreation>0?Math.min(100,Math.round((habit.completions?O
 var predictedMax=Math.round(bs*(1+consistency/200));
 var confidence=Math.min(95,Math.round(30+consistency*0.6+Math.min(cs,30)));
 var riskLevel=rate>70?'Low':rate>40?'Medium':'High';
-return{currentStreak:cs,bestStreak:bs,rate:rate,predictedMax:predictedMax,confidence:confidence,riskLevel:riskLevel,recommendation:rate>70?'Keep it up! You are on track.':rate>40?'Stay consistent. You can do better!':'Consider reducing the frequency or goal.'}}
+return{currentStreak:cs,bestStreak:bs,rate:rate,predictedMax:predictedMax,confidence:confidence,riskLevel:riskLevel}}
 
 function aiGenerateWeeklyReport(){
-var report={period:'',totalCompleted:0,avgRate:0,bestDay:'',worstDay:'',topHabit:'',improvements:[],achievements:[]};
-var today=new Date();
-var weekStart=new Date(today);weekStart.setDate(today.getDate()-7);
-var totalComp=0,totalActive=0;
-var dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-var dayComps=[0,0,0,0,0,0,0];
+var report={totalCompleted:0,avgRate:0,bestDay:'',worstDay:'',topHabit:'',achievements:[]};
+var today=new Date();var weekStart=new Date(today);weekStart.setDate(today.getDate()-7);
+var totalComp=0,totalActive=0;var dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var dayComps=[0,0,0,0,0,0,0];
 habits.forEach(function(h){for(var i=0;i<7;i++){var d=new Date(weekStart);d.setDate(weekStart.getDate()+i);var ds=formatDate(d);if(shouldTrackToday(h,d)){totalActive++;var dayIdx=d.getDay();if(h.completions&&h.completions[ds]){totalComp++;dayComps[dayIdx]++}}}});
-report.totalCompleted=totalComp;
-report.avgRate=totalActive>0?Math.round(totalComp/totalActive*100):0;
-var bestDayIdx=0,bestDayCount=0;
-dayComps.forEach(function(c,i){if(c>bestDayCount){bestDayCount=c;bestDayIdx=i}});
-report.bestDay=dayNames[bestDayIdx];
-var worstDayIdx=0,worstDayCount=Infinity;
+report.totalCompleted=totalComp;report.avgRate=totalActive>0?Math.round(totalComp/totalActive*100):0;
+var bestDayIdx=0,bestDayCount=0;dayComps.forEach(function(c,i){if(c>bestDayCount){bestDayCount=c;bestDayIdx=i}});
+report.bestDay=dayNames[bestDayIdx];var worstDayIdx=0,worstDayCount=Infinity;
 dayComps.forEach(function(c,i){if(c<worstDayCount&&c>=0){worstDayCount=c;worstDayIdx=i}});
 report.worstDay=dayNames[worstDayIdx];
 var habitRates=habits.map(function(h){return{name:h.name,rate:getCompletionRate(h)}}).sort(function(a,b){return b.rate-a.rate});
 report.topHabit=habitRates.length?habitRates[0].name:'N/A';
 if(report.avgRate>75)report.achievements.push('\u{1F31F} Excellent week! You maintained a '+report.avgRate+'% completion rate.');
 if(report.avgRate>=50&&report.avgRate<=75)report.achievements.push('\u{1F4AA} Good effort! You completed '+report.avgRate+'% of your habits.');
-if(report.avgRate<50)report.achievements.push('\u{1F4AA} Keep pushing! Every step counts. Try focusing on 2-3 core habits.');
-if(habits.some(function(h){return getCurrentStreak(h)>=7})){report.achievements.push('\u{1F525} You have a 7+ day streak on at least one habit!')}
+if(report.avgRate<50)report.achievements.push('\u{1F4AA} Keep pushing! Every step counts.');
 return report}
 
-var aiKnowledge=[
-{q:/how.*(many|much).*(habit|done|completed)/i,fn:function(){return 'You have '+habits.length+' habits. Today you completed '+habits.filter(function(h){return h.completions&&h.completions[formatDate(new Date())]}).length+'.'}},
-{q:/best.*streak/i,fn:function(){return 'Your best streak is '+getBestStreak()+' days! '+getBestStreak()>=7?'Amazing consistency!':'Keep building those streaks!'}},
-{q:/streak.*freeze|freeze/i,fn:function(){return 'You have '+streakFreezes+' streak freeze'+(streakFreezes!==1?'s':'')+' remaining (max 3). Earn more at 1000 XP milestones.'}},
-{q:/level|xp|experience/i,fn:function(){var info=getLevelInfo();return 'You are Level '+info.level+' ('+info.title+') with '+xp+' XP. Next level at '+info.needed+' XP.'}},
-{q:/motivat|encourag|inspire/i,fn:function(){var tips=['Every small step counts towards your bigger goal!','Consistency beats intensity. Show up daily!','You are building habits that will define your future.','Progress, not perfection. Keep going!','The best time to start was yesterday. The second best time is now.','You have completed '+getTotalCompletions()+' habits so far. That is real progress!'];return tips[Math.floor(Math.random()*tips.length)]}},
-{q:/suggest|recommend|add/i,fn:function(){var s=aiGenerateSuggestions();return s.length?'Here are some suggestions:\n'+s.map(function(x){return x.icon+' '+x.name+' — '+x.reason}).join('\n'):'You have great coverage! Try adding habits in categories you are missing.'}},
-{q:/best.*time|when.*do/i,fn:function(){var analysis=aiAnalyzePatterns();var tod=analysis.patterns.timeOfDay;var best=Object.entries(tod).sort(function(a,b){return b[1]-a[1]})[0];return best?'You are most active during the '+best[0]+' ('+best[1]+' completions). Schedule your important habits then!':'Complete some habits first and I will analyze your best time.'}},
-{q:/predict|forecast|future/i,fn:function(){if(!habits.length)return 'Add some habits first and I can predict your streaks!';var predictions=habits.slice(0,3).map(function(h){var p=aiPredictStreak(h);return h.name+': Predicted max '+p.predictedMax+' days (confidence: '+p.confidence+'%)'});return 'Streak predictions:\n'+predictions.join('\n')}},
-{q:/perfect|all.*done|complete.*all/i,fn:function(){var today=formatDate(new Date());var active=habits.filter(function(h){return shouldTrackToday(h,new Date())});var done=active.filter(function(h){return h.completions&&h.completions[today]});return done.length===active.length&&active.length>0?'Perfect day! All '+active.length+' habits completed! \u{1F389}':(active.length-done.length)+' habits left today. You can do it!'}},
-{q:/help|what.*can|feature/i,fn:function(){return 'I can help you with:\n\u2022 Habit suggestions & recommendations\n\u2022 Streak predictions\n\u2022 Motivational quotes\n\u2022 Best time analysis\n\u2022 Weekly reports\n\u2022 Natural language habit creation\nJust ask me anything!'}},
-{q:/hello|hi|hey|good morning|good evening/i,fn:function(){return 'Hello! \u{1F44B} I am your AI habit assistant. Ask me anything about your habits, get suggestions, or request a weekly report!'}},
-{q:/report|summary|overview/i,fn:function(){var r=aiGenerateWeeklyReport();return 'Weekly Summary:\n\u2022 Total completed: '+r.totalCompleted+'\n\u2022 Avg rate: '+r.avgRate+'%\n\u2022 Best day: '+r.bestDay+'\n\u2022 Worst day: '+r.worstDay+'\n\u2022 Top habit: '+r.topHabit+'\n'+r.achievements.join('\n')}}
+// ---- ENHANCED AI RESPONSE ENGINE ----
+var aiGreetings=['Hey there! \u{1F44B} How can I help you today?','Hello! \u{1F60A} Ready to crush your habits?','Hi! \u{1F31F} I am here to help you build better habits!','Welcome back! \u{1F4AA} Let us make today count!'];
+var aiMotivationalQuotes=[
+'\u201CWe are what we repeatedly do. Excellence, then, is not an act, but a habit.\u201D \u2014 Aristotle',
+'\u201CMotivation is what gets you started. Habit is what keeps you going.\u201D \u2014 Jim Ryun',
+'\u201CThe secret of your future is hidden in your daily routine.\u201D \u2014 Mike Murdock',
+'\u201CSuccess is the sum of small efforts, repeated day in and day out.\u201D \u2014 Robert Collier',
+'\u201CYou do not rise to the level of your goals. You fall to the level of your systems.\u201D \u2014 James Clear',
+'\u201CChampions don\u2019t do extraordinary things. They do ordinary things, but they do them without thinking.\u201D \u2014 Charles Duhigg',
+'\u201CFirst forget inspiration. Habit is more dependable.\u201D \u2014 Octavia Butler',
+'\u201CGood habits are worth being fanatical about.\u201D \u2014 John Irving'
 ];
+
+function aiGetSmartResponse(msg){
+var lower=msg.toLowerCase();
+var today=formatDate(new Date());
+var active=habits.filter(function(h){return shouldTrackToday(h,new Date())});
+var completed=active.filter(function(h){return h.completions&&h.completions[today]});
+var incomplete=active.filter(function(h){return !h.completions||!h.completions[today]});
+var analysis=aiAnalyzePatterns();
+var totalComp=getTotalCompletions();
+var lvl=getLevelInfo();
+
+// Create habit from chat
+if(lower.indexOf('create habit')!==-1||lower.indexOf('add habit')!==-1||lower.indexOf('new habit')!==-1){
+var habitDesc=msg.replace(/^(create|add|new)\s+habit\s*:\s*/i,'').replace(/^(create|add|new)\s+habit\s*/i,'');
+if(habitDesc.length>3){
+var parsed=aiParseNLPHabit(habitDesc);
+return{type:'action',text:'I will create this habit for you:',action:'create_habit',data:parsed,
+display:'I analyzed your request and here is what I will create:\n\n\ud83d\udcdd **Name:** '+parsed.name+'\n\ud83d\udccc **Category:** '+parsed.category+'\n\ud83d\udd04 **Frequency:** '+parsed.frequency+'\n\ud83c\udfaf **Goal:** '+parsed.goalText+'\n\u26a1 **Priority:** '+parsed.priority+'\n'+parsed.icon+' **Icon:** '+parsed.icon+'\n\nClick below to create it!'}}
+return{type:'text',text:'Please describe the habit you want to create. For example:\n\u2022 "Create habit: Read 20 pages daily"\n\u2022 "Add habit: Exercise 30 minutes"\n\u2022 "New habit: Meditate 10 minutes every morning"'}}
+
+// Greetings
+if(lower.match(/^(hello|hi|hey|good morning|good evening|good afternoon|yo|sup|howdy|hola)/)){
+aiContext.mood='friendly';
+return{type:'text',text:aiGreetings[Math.floor(Math.random()*aiGreetings.length)]+'\n\nYou have '+habits.length+' habits, '+completed.length+'/'+active.length+' done today, and you are Level '+lvl.level+' ('+lvl.title+'). How can I help?'}}
+
+// How are my habits / status
+if(lower.match(/how.*(habit|doing|today|status|progress)/i)||lower.match(/^(what|show).*(status|progress|today)/i)){
+var pct=active.length>0?Math.round(completed.length/active.length*100):0;
+var emoji=pct===100?'\u{1F389}':pct>=75?'\u{1F4AA}':pct>=50?'\u{1F4C8}':pct>0?'\u{1F4A7}':'\u{1F614}';
+var response=emoji+' **Today\'s Status**\n\n';
+response+='\u2705 Completed: **'+completed.length+'/'+active.length+'** habits ('+pct+'%)\n';
+response+='\u{1F525} Best streak: **'+getBestStreak()+'** days\n';
+response+='\u2b50 Level: **'+lvl.level+'** ('+xp+' XP)\n';
+response+='\u{1F6E1}\uFE0F Freezes: **'+streakFreezes+'/3**\n\n';
+if(incomplete.length>0){
+response+='**Still to do today:**\n';
+incomplete.forEach(function(h){response+=' \u2022 '+h.icon+' '+h.name+'\n'})}
+else if(active.length>0){response+='\ud83c\udf1f Amazing! All habits completed today! You are on fire!'}
+else{response+='No habits scheduled for today. Add some habits to get started!'}
+return{type:'text',text:response}}
+
+// Motivation
+if(lower.match(/motivat|encourag|inspire|pump|boost|lift|uplift/i)){
+var q=aiMotivationalQuotes[Math.floor(Math.random()*aiMotivationalQuotes.length)];
+var extra='\n\nYou have completed **'+totalComp+'** habits so far and your best streak is **'+getBestStreak()+' days**. That is real progress!';
+if(incomplete.length>0)extra+='\n\nYou still have **'+incomplete.length+'** habits left today. You can do it!';
+return{type:'text',text:q+extra}}
+
+// Suggest habits
+if(lower.match(/suggest|recommend|add.*habit|new.*habit|what.*should/i)){
+var suggestions=aiGenerateSuggestions();
+if(suggestions.length){
+var response='\ud83c\udfaf **Smart Suggestions**\n\nBased on your patterns, here are personalized recommendations:\n\n';
+suggestions.forEach(function(s,i){response+=(i+1)+'. '+s.icon+' **'+s.name+'** \u2014 '+s.reason+'\n'});
+response+='\nType "create habit: [name]" to add any of these!'}
+else{response='You have great habit coverage! Keep up the excellent work.'}
+return{type:'text',text:response}}
+
+// Weekly report
+if(lower.match(/weekly.*report|week.*summary|report|summary/i)){
+var r=aiGenerateWeeklyReport();
+var response='\ud83d\udcca **Weekly Report**\n\n';
+response+='\u2705 Completed: **'+r.totalCompleted+'** habits\n';
+response+='\ud83d\udcc8 Avg rate: **'+r.avgRate+'%**\n';
+response+='\ud83c\udfc6 Best day: **'+r.bestDay+'**\n';
+response+='\u26a0\ufe0f Weakest: **'+r.worstDay+'**\n';
+response+='\ud83c\udfc5 Top habit: **'+r.topHabit+'**\n\n';
+if(r.achievements.length){response+='**Achievements:**\n';r.achievements.forEach(function(a){response+=' \u2022 '+a+'\n'})}
+return{type:'text',text:response}}
+
+// Predict streaks
+if(lower.match(/predict|forecast|future|streak.*predict/i)){
+if(!habits.length)return{type:'text',text:'Add some habits first and I will predict your streaks!'};
+var response='\ud83e\udd2e **Streak Predictions**\n\n';
+habits.slice(0,5).forEach(function(h){
+var p=aiPredictStreak(h);
+var riskEmoji=p.riskLevel==='Low'?'\u{1F7E2}':p.riskLevel==='Medium'?'\u{1F7E1}':'\u{1F534}';
+response+=h.icon+' **'+h.name+'**\n';
+response+='   Current: '+p.currentStreak+'d | Best: '+p.bestStreak+'d | Rate: '+p.rate+'%\n';
+response+='   Predicted max: **'+p.predictedMax+' days** (confidence: '+p.confidence+'%)\n';
+response+='   Risk: '+riskEmoji+' '+p.riskLevel+'\n\n'});
+return{type:'text',text:response}}
+
+// Best time
+if(lower.match(/best.*time|when.*do|optimal.*time|peak.*time/i)){
+var tod=analysis.patterns.timeOfDay;
+var best=Object.entries(tod).sort(function(a,b){return b[1]-a[1]})[0];
+if(best){
+var response='\ud83d\udd52 **Your Optimal Times**\n\n';
+Object.entries(tod).sort(function(a,b){return b[1]-a[1]}).forEach(function(e){
+var bar='\u2588'.repeat(Math.round(e[1]/(best[1]||1)*10));
+response+=e[0]+': '+bar+' ('+e[1]+')\n'});
+response+='\n**Recommendation:** Schedule your most important habits during **'+best[0]+'** when you are most productive!'}
+else{response='Complete some habits first and I will analyze your optimal times.'}
+return{type:'text',text:response}}
+
+// Analyze patterns
+if(lower.match(/analyz|pattern|insight|trend|data/i)){
+var response='\ud83d\udcc8 **Pattern Analysis**\n\n';
+if(analysis.bestHabit)response+='\u{1F3C6} **Best habit:** '+analysis.bestHabit.name+' ('+analysis.bestHabit.rate+'%)\n';
+if(analysis.worstHabit&&analysis.worstHabit.rate<80)response+='\u26a0\ufe0f **Needs work:** '+analysis.worstHabit.name+' ('+analysis.worstHabit.rate+'%)\n';
+response+='\ud83d\udcca **Avg completion:** '+analysis.avgRate+'%\n';
+response+='\ud83d\udca1 **Total completions:** '+analysis.totalCompletions+'\n\n';
+var cats=analysis.patterns.category;
+if(Object.keys(cats).length>0){
+response+='**Category breakdown:**\n';
+Object.entries(cats).forEach(function(e){response+=' \u2022 '+e[0]+': '+Math.round(e[1].total/e[1].count)+'% avg\n'})}
+if(analysis.recommendations.length){response+='\n**Recommendations:**\n';analysis.recommendations.forEach(function(r){response+=' \u2022 '+r.text+'\n'})}
+return{type:'text',text:response}}
+
+// What to work on / improve
+if(lower.match(/what.*(work on|improve|fix|better)/i)){
+var response='\ud83d\udca1 **Areas for Improvement**\n\n';
+var found=false;
+if(analysis.worstHabit&&analysis.worstHabit.rate<60){response+='\u2022 **'+analysis.worstHabit.name+'** has only '+analysis.worstHabit.rate+'% completion. Try breaking it into smaller steps.\n';found=true}
+var lowStreakHabits=habits.filter(function(h){return getCurrentStreak(h)===0&&getCompletionRate(h)<50});
+if(lowStreakHabits.length>0){response+='\u2022 You have '+lowStreakHabits.length+' habits with no current streak. Focus on consistency.\n';found=true}
+if(analysis.avgRate<60){response+='\u2022 Your overall rate is '+analysis.avgRate+'%. Consider reducing daily habits to focus on quality.\n';found=true}
+if(!found){response+='You are doing great! Here are some ways to level up:\n\u2022 Add a habit in a new category\n\u2022 Try a 30-day challenge\n\u2022 Increase your streak goals'}
+return{type:'text',text:response}}
+
+// Streak info
+if(lower.match(/streak/i)){
+if(lower.match(/freeze|protect/i))return{type:'text',text:'You have **'+streakFreezes+'** streak freeze'+(streakFreezes!==1?'s':'')+' remaining (max 3). Earn more at every 1000 XP milestone! Your current XP is '+xp+'.'};
+var best=getBestStreak();
+var response='\ud83d\udd25 **Streak Report**\n\n';
+habits.forEach(function(h){var cs=getCurrentStreak(h);var bs=getBestStreakForHabit(h);response+=h.icon+' '+h.name+': **'+cs+' days** (best: '+bs+')\n'});
+response+='\nYour overall best streak: **'+best+' days**';
+return{type:'text',text:response}}
+
+// Level / XP
+if(lower.match(/level|xp|experience|point/i)){
+var info=getLevelInfo();
+var prog=info.needed>info.currentMin?Math.round((info.xp-info.currentMin)/(info.needed-info.currentMin)*100):100;
+return{type:'text',text:'\u2b50 **Level '+info.level+'** ('+info.title+')\n\nXP: **'+info.xp+' / '+info.needed+'**\nProgress: **'+prog+'%** to next level\n\n'+(info.level>=10?'You are at the最高 level! Incredible!':'Keep earning XP to reach Level '+(info.level+1)+'!')}}
+
+// Perfect day check
+if(lower.match(/perfect|all.*done|complete.*all/i)){
+var today=formatDate(new Date());
+var active2=habits.filter(function(h){return shouldTrackToday(h,new Date())});
+var done2=active2.filter(function(h){return h.completions&&h.completions[today]});
+if(done2.length===active2.length&&active2.length>0)return{type:'text',text:'\u{1F389} **PERFECT DAY!** All '+active2.length+' habits completed! You are absolutely crushing it!'};
+return{type:'text',text:'You have **'+(active2.length-done2.length)+'** habits left today. '+((active2.length-done2.length<=2)?'Almost there! You can do it!':'Break them down and tackle them one by one!')}}
+
+// Jokes / fun
+if(lower.match(/joke|funny|laugh|humor/i)){
+var jokes=['Why do programmers prefer dark mode? Because light attracts bugs! \u{1F41B}','I told my wife she was drawing her eyebrows too high. She looked surprised. \u{1F632}','Why don\u2019t scientists trust atoms? Because they make up everything! \u{1F9EA}','I used to hate facial hair, but then it grew on me. \u{1F9D7}','What do you call a fake noodle? An impasta! \u{1F35D}'];
+return{type:'text',text:jokes[Math.floor(Math.random()*jokes.length)]+'\n\nNow let us get back to building those habits! \u{1F4AA}'}}
+
+// Help
+if(lower.match(/help|what.*can|feature|command/i)){
+return{type:'text',text:'\ud83e\udd16 **What I Can Do**\n\n\u2022 **Status:** "How are my habits today?"\n\u2022 **Suggest:** "Suggest new habits for me"\n\u2022 **Motivate:** "Give me motivation"\n\u2022 **Report:** "Show my weekly report"\n\u2022 **Predict:** "Predict my streaks"\n\u2022 **Analyze:** "Analyze my patterns"\n\u2022 **Improve:** "What should I work on?"\n\u2022 **Create:** "Create habit: [description]"\n\u2022 **Streak:** "What is my streak?"\n\u2022 **Level:** "What level am I?"\n\u2022 **Time:** "When is my best time?"\n\u2022 **Fun:** "Tell me a joke"\n\nJust type naturally and I will understand!'}}
+
+// Default contextual response
+var totalHabits=habits.length;
+var response='\ud83e\udd14 **Let me think...**\n\n';
+if(totalHabits===0){response+='You don\'t have any habits yet! Type "create habit: [name]" to add your first one, or check the Habits tab for templates.'}
+else{
+var randomTips=[
+'Here is a tip: Habit stacking works great! Add a new habit right after an existing one.',
+'Pro tip: Start small. A 2-minute version of your habit is better than skipping it entirely.',
+'Fun fact: It takes an average of 66 days to form a new habit. Keep going!',
+'Advice: Track your habits at the same time each day to build consistency.',
+'Remember: Missing one day does not break your streak. Just get back on track tomorrow!'
+];
+response+=randomTips[Math.floor(Math.random()*randomTips.length)];
+response+='\n\nTry asking me about your streaks, weekly report, or say "help" to see what I can do!'}
+return{type:'text',text:response}}
 
 function sendAIMessage(){
 var input=document.getElementById('aiChatInput');
@@ -1346,69 +1535,91 @@ var msg=input.value.trim();
 if(!msg)return;
 input.value='';
 addChatMessage(msg,'user');
-setTimeout(function(){var response=aiGetResponse(msg);addChatMessage(response,'ai')},500)}
+showAITyping();
+setTimeout(function(){
+hideAITyping();
+var response=aiGetSmartResponse(msg);
+if(response.type==='action'&&response.action==='create_habit'){
+addAIActionMessage(response.text,response.data);
+}else{
+addChatMessage(response.text,'ai')}
+},800+Math.random()*700)}
+
+function aiQuickAction(msg){
+document.getElementById('aiChatInput').value=msg;
+sendAIMessage()}
 
 function addChatMessage(text,sender){
 var container=document.getElementById('aiChatMessages');
 var div=document.createElement('div');
-div.style.cssText='margin-bottom:12px;display:flex;'+(sender==='ai'?'justify-content:flex-start':'justify-content:flex-end');
-var bubble=document.createElement('div');
-bubble.style.cssText='max-width:80%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-line;'+(sender==='ai'?'background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-bottom-left-radius:4px':'background:var(--gradient-1);color:white;border-bottom-right-radius:4px');
-bubble.textContent=text;
-div.appendChild(bubble);
+div.className='ai-msg '+(sender==='user'?'user':'ai');
+if(sender==='ai'){
+var header=document.createElement('div');
+header.className='ai-msg-header';
+header.innerHTML='&#129302; Habit AI';
+div.appendChild(header)}
+var content=document.createElement('div');
+content.innerHTML=sender==='ai'?aiFormatMarkdown(text):text;
+div.appendChild(content);
 container.appendChild(div);
 container.scrollTop=container.scrollHeight;
 aiChatHistory.push({sender:sender,text:text,time:Date.now()})}
 
-function aiGetResponse(msg){
-var lower=msg.toLowerCase();
-for(var i=0;i<aiKnowledge.length;i++){if(aiKnowledge[i].q.test(lower))return aiKnowledge[i].fn()}
-if(lower.indexOf('?')!==-1||lower.length<30){
-var topics=['streaks','completion rates','motivation','habit suggestions','weekly report','best time to do habits','predict my streaks','how many habits','what level am I'];
-return 'I can help with: '+topics.join(', ')+'\n\nTry asking me something specific!'}
-return 'I understand you are asking about: "'+msg+'"\n\nI can help with:\n\u2022 Habit analysis & suggestions\n\u2022 Streak predictions\n\u2022 Motivation\n\u2022 Weekly reports\n\nJust ask a question like "What is my best streak?" or "Suggest new habits"!'}
+function addAIActionMessage(text,data){
+var container=document.getElementById('aiChatMessages');
+var div=document.createElement('div');
+div.className='ai-msg ai';
+var header=document.createElement('div');
+header.className='ai-msg-header';
+header.innerHTML='&#129302; Habit AI';
+div.appendChild(header);
+var content=document.createElement('div');
+content.innerHTML=aiFormatMarkdown(text);
+div.appendChild(content);
+var actionDiv=document.createElement('div');
+actionDiv.className='ai-action-card';
+actionDiv.innerHTML='<div class="action-title">Click to create this habit</div><div class="action-desc">'+data.icon+' '+data.name+' ('+data.category+', '+data.frequency+')</div>';
+actionDiv.onclick=function(){
+habits.push({id:Date.now().toString(),name:data.name,description:'Created via AI Chat',category:data.category,priority:data.priority,frequency:data.frequency,goal:data.goal,goalText:data.goalText,reminder:'09:00',color:habitColors[Math.floor(Math.random()*habitColors.length)],icon:data.icon,restDays:[],tags:[],completions:{},createdAt:new Date().toISOString(),order:habits.length,freezesUsed:0});
+addXP(30);saveProfileData();renderAll();
+actionDiv.innerHTML='<div class="action-title" style="color:var(--success)">\u2713 Habit Created! +30 XP</div>';
+actionDiv.style.pointerEvents='none';
+showToast('Habit created via AI! +30 XP','xp');triggerConfetti()};
+div.appendChild(actionDiv);
+container.appendChild(div);
+container.scrollTop=container.scrollHeight}
 
-function renderAIInsights(){
-var panel=document.getElementById('aiInsightsPanel');
-var analysis=aiAnalyzePatterns();
-var html='';
-if(analysis.bestHabit){html+='<div style="margin-bottom:10px;padding:10px;background:rgba(16,185,129,0.1);border-radius:8px;border:1px solid rgba(16,185,129,0.2)"><div style="font-size:12px;font-weight:700;color:var(--success)">Best Habit</div><div style="font-size:13px;font-weight:600">'+analysis.bestHabit.name+'</div><div style="font-size:11px;color:var(--text-muted)">'+analysis.bestHabit.rate+'% completion rate</div></div>'}
-if(analysis.worstHabit&&analysis.worstHabit.rate<80){html+='<div style="margin-bottom:10px;padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;border:1px solid rgba(239,68,68,0.2)"><div style="font-size:12px;font-weight:700;color:var(--danger)">Needs Attention</div><div style="font-size:13px;font-weight:600">'+analysis.worstHabit.name+'</div><div style="font-size:11px;color:var(--text-muted)">'+analysis.worstHabit.rate+'% completion rate</div></div>'}
-analysis.recommendations.slice(0,3).forEach(function(r){var colors={warning:'rgba(245,158,11,0.1)',tip:'rgba(59,130,246,0.1)',success:'rgba(16,185,129,0.1)',info:'rgba(99,102,241,0.1)'};var borderColors={warning:'rgba(245,158,11,0.2)',tip:'rgba(59,130,246,0.2)',success:'rgba(16,185,129,0.2)',info:'rgba(99,102,241,0.2)'};html+='<div style="margin-bottom:8px;padding:8px 10px;background:'+(colors[r.type]||colors.info)+';border-radius:8px;border:1px solid '+(borderColors[r.type]||borderColors.info)+';font-size:12px">'+r.text+'</div>'});
-if(!html)html='<p style="font-size:13px;color:var(--text-muted)">Add some habits to get AI insights!</p>';
-panel.innerHTML=html}
+function aiFormatMarkdown(text){
+return text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`(.*?)`/g,'<code>$1</code>').replace(/\n/g,'<br>')}
 
-function renderAISuggestions(){
-var panel=document.getElementById('aiSuggestionsPanel');
-var suggestions=aiGenerateSuggestions();
-if(!suggestions.length){panel.innerHTML='<p style="font-size:13px;color:var(--text-muted)">You are doing great! No suggestions right now.</p>';return}
-panel.innerHTML=suggestions.map(function(s){return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-glass);border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer" onclick="aiCreateSuggested(\''+s.name.replace(/'/g,"\\'")+'\')"><span style="font-size:18px">'+s.icon+'</span><div><div style="font-size:12px;font-weight:600">'+s.name+'</div><div style="font-size:11px;color:var(--text-muted)">'+s.reason+'</div></div></div>'}).join('')}
+function showAITyping(){document.getElementById('aiTyping').style.display='flex';var c=document.getElementById('aiChatMessages');c.scrollTop=c.scrollHeight}
+function hideAITing(){document.getElementById('aiTyping').style.display='none'}
+function hideAITyping(){document.getElementById('aiTyping').style.display='none'}
 
-function aiCreateSuggested(name){
-document.getElementById('habitName').value=name;
-openModal();
-showToast('Suggestion loaded! Customize and save your habit.','info')}
+function clearAIChat(){
+if(!confirm('Clear chat history?'))return;
+document.getElementById('aiChatMessages').innerHTML='';
+aiChatHistory=[];
+addChatMessage(aiGreetings[Math.floor(Math.random()*aiGreetings.length)],'ai')}
 
-function renderAIWeeklyReport(){
-var container=document.getElementById('aiWeeklyReport');
-var report=aiGenerateWeeklyReport();
-var html='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">';
-html+='<div class="stats-mini-card"><div class="mini-value">'+report.totalCompleted+'</div><div class="mini-label">Completed This Week</div></div>';
-html+='<div class="stats-mini-card"><div class="mini-value">'+report.avgRate+'%</div><div class="mini-label">Avg Completion Rate</div></div>';
-html+='<div class="stats-mini-card"><div class="mini-value">'+report.bestDay+'</div><div class="mini-label">Best Day</div></div>';
-html+='<div class="stats-mini-card"><div class="mini-value">'+report.worstDay+'</div><div class="mini-label">Needs Focus</div></div>';
-html+='<div class="stats-mini-card"><div class="mini-value">'+report.topHabit+'</div><div class="mini-label">Top Habit</div></div>';
-html+='</div>';
-if(report.achievements.length){html+='<h4 style="font-size:13px;font-weight:700;margin-bottom:8px">Achievements This Week</h4>';report.achievements.forEach(function(a){html+='<div style="padding:8px 12px;background:rgba(16,185,129,0.1);border-radius:8px;border:1px solid rgba(16,185,129,0.2);margin-bottom:6px;font-size:13px">'+a+'</div>'})}
-container.innerHTML=html}
+function exportAIChat(){
+var text=aiChatHistory.map(function(m){return(m.sender==='ai'?'AI: ':'You: ')+m.text+'\n'+new Date(m.time).toLocaleString()+'\n'}).join('\n---\n\n');
+var blob=new Blob([text],{type:'text/plain'});
+var url=URL.createObjectURL(blob);
+var a=document.createElement('a');a.href=url;a.download='ai-chat-export.txt';a.click();
+URL.revokeObjectURL(url);showToast('Chat exported!','success')}
 
-function processNLP(){
-var input=document.getElementById('aiNlpInput').value.trim();
-var result=document.getElementById('aiNlpResult');
-if(!input){showToast('Enter a habit description','warning');return}
-var parsed=aiParseNLPHabit(input);
-result.innerHTML='<div style="padding:16px;background:var(--bg-glass);border-radius:var(--radius-sm);border:1px solid var(--border)"><h4 style="font-size:14px;font-weight:700;margin-bottom:12px">AI Parsed Your Habit:</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Name</div><div style="font-size:14px;font-weight:600">'+parsed.name+'</div></div><div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Category</div><div style="font-size:14px;font-weight:600">'+parsed.category+'</div></div><div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Frequency</div><div style="font-size:14px;font-weight:600">'+parsed.frequency+'</div></div><div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Goal</div><div style="font-size:14px;font-weight:600">'+parsed.goalText+'</div></div><div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Priority</div><div style="font-size:14px;font-weight:600">'+parsed.priority+'</div></div><div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Icon</div><div style="font-size:14px;font-weight:600">'+parsed.icon+'</div></div></div><button class="btn btn-primary btn-sm" onclick="aiCreateFromNLP()">Create This Habit</button></div>';
-result._parsed=parsed}
+function aiVoiceInput(){
+if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){showToast('Voice input not supported','warning');return}
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+var recognition=new SR();
+recognition.continuous=false;recognition.interimResults=false;recognition.lang='en-US';
+var input=document.getElementById('aiChatInput');
+input.placeholder='Listening...';
+recognition.onresult=function(e){input.value=e.results[0][0].transcript;input.placeholder='Type a message...'};
+recognition.onerror=function(){input.placeholder='Type a message...';showToast('Voice input error','warning')};
+recognition.onend=function(){input.placeholder='Type a message...'};
+recognition.start()}
 
 function aiParseNLPHabit(text){
 var lower=text.toLowerCase();
@@ -1425,11 +1636,9 @@ if(lower.match(/every day|daily|each day/))frequency='daily';
 else if(lower.match(/weekday|monday.*friday|work.?day/))frequency='weekdays';
 else if(lower.match(/weekend|saturday|sunday/))frequency='weekends';
 else if(lower.match(/once a week|weekly|once per week/))frequency='weekly';
-var goal=7;
-var goalMatch=lower.match(/(\d+)\s*(times?|days?|per week|\/\s*week)/);
+var goal=7;var goalMatch=lower.match(/(\d+)\s*(times?|days?|per week|\/\s*week)/);
 if(goalMatch)goal=Math.min(7,Math.max(1,parseInt(goalMatch[1])));
-var goalText='';
-var numMatch=text.match(/(\d+)\s*(minutes?|mins?|hours?|pages?|glasses?|km|steps?|sets?|reps?|minutes)/i);
+var goalText='';var numMatch=text.match(/(\d+)\s*(minutes?|mins?|hours?|pages?|glasses?|km|steps?|sets?|reps?)/i);
 if(numMatch)goalText=numMatch[0];
 else if(lower.match(/read/))goalText='20 pages';
 else if(lower.match(/exercise|workout/))goalText='30 minutes';
@@ -1438,31 +1647,58 @@ else if(lower.match(/meditat/))goalText='10 minutes';
 else goalText='1 time';
 var priority='medium';
 if(lower.match(/important|must|critical|every single|never miss/))priority='high';
-else if(lower.match(/try|maybe|optional|when possible|sometimes/))priority='low';
-var icons={'read':'\u{1F4D6}','learn':'\u{1F393}','study':'\u{1F393}','exercise':'\u{1F3C3}','workout':'\u{1F4AA}','gym':'\u{1F4AA}','run':'\u{1F3C3}','walk':'\u{1F6B6}','meditat':'\u{1F9D8}','yoga':'\u{1F9D8}','journal':'\u{1F4DD}','write':'\u{1F4DD}','water':'\u{1F4A7}','drink':'\u{1F4A7}','eat':'\u{1F957}','healthy':'\u{1F957}','sleep':'\u{1F4A4}','code':'\u{1F4BB}','clean':'\u{1F9F9}','cook':'\u{1F373}','music':'\u{1F3B5}','art':'\u{1F3A8}','photo':'\u{1F4F7}'};
-var icon='\u{1F4CB}';
-Object.keys(icons).forEach(function(k){if(lower.indexOf(k)!==-1)icon=icons[k]});
+else if(lower.match(/try|maybe|optional|when possible/))priority='low';
+var icons={'read':'\u{1F4D6}','learn':'\u{1F393}','study':'\u{1F393}','exercise':'\u{1F3C3}','workout':'\u{1F4AA}','gym':'\u{1F4AA}','run':'\u{1F3C3}','walk':'\u{1F6B6}','meditat':'\u{1F9D8}','yoga':'\u{1F9D8}','journal':'\u{1F4DD}','write':'\u{1F4DD}','water':'\u{1F4A7}','drink':'\u{1F4A7}','eat':'\u{1F957}','healthy':'\u{1F957}','sleep':'\u{1F4A4}','code':'\u{1F4BB}','clean':'\u{1F9F9}','cook':'\u{1F373}','music':'\u{1F3B5}','art':'\u{1F3A8}'};
+var icon='\u{1F4CB}';Object.keys(icons).forEach(function(k){if(lower.indexOf(k)!==-1)icon=icons[k]});
 return{name:name,category:category,frequency:frequency,goal:goal,goalText:goalText,priority:priority,icon:icon}}
+
+function processNLP(){
+var input=document.getElementById('aiNlpInput').value.trim();
+var result=document.getElementById('aiNlpResult');
+if(!input){showToast('Enter a habit description','warning');return}
+var parsed=aiParseNLPHabit(input);
+result.innerHTML='<div style="padding:12px;background:var(--bg-glass);border-radius:var(--radius-sm);border:1px solid var(--border)"><div style="font-size:13px;font-weight:700;margin-bottom:8px">Parsed: '+parsed.icon+' '+parsed.name+'</div><div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">'+parsed.category+' | '+parsed.frequency+' | '+parsed.goalText+' | '+parsed.priority+'</div><button class="btn btn-primary btn-sm" onclick="aiCreateFromNLP()">Create</button></div>';
+result._parsed=parsed}
 
 function aiCreateFromNLP(){
 var result=document.getElementById('aiNlpResult');
 var parsed=result._parsed;
 if(!parsed)return;
 habits.push({id:Date.now().toString(),name:parsed.name,description:'Created via AI',category:parsed.category,priority:parsed.priority,frequency:parsed.frequency,goal:parsed.goal,goalText:parsed.goalText,reminder:'09:00',color:habitColors[Math.floor(Math.random()*habitColors.length)],icon:parsed.icon,restDays:[],tags:[],completions:{},createdAt:new Date().toISOString(),order:habits.length,freezesUsed:0});
-addXP(30);
-saveProfileData();
-renderAll();
-document.getElementById('aiNlpInput').value='';
-result.innerHTML='';
-showToast('Habit created via AI! +30 XP','xp');
-triggerConfetti()}
+addXP(30);saveProfileData();renderAll();
+document.getElementById('aiNlpInput').value='';result.innerHTML='';
+showToast('Habit created via AI! +30 XP','xp');triggerConfetti()}
+
+function renderAIInsights(){
+var panel=document.getElementById('aiInsightsPanel');
+var analysis=aiAnalyzePatterns();
+var html='';
+if(analysis.bestHabit){html+='<div style="margin-bottom:8px;padding:8px 10px;background:rgba(16,185,129,0.1);border-radius:8px;border:1px solid rgba(16,185,129,0.2)"><div style="font-size:11px;font-weight:700;color:var(--success)">Best Habit</div><div style="font-size:12px;font-weight:600">'+analysis.bestHabit.name+'</div><div style="font-size:10px;color:var(--text-muted)">'+analysis.bestHabit.rate+'% completion</div></div>'}
+if(analysis.worstHabit&&analysis.worstHabit.rate<80){html+='<div style="margin-bottom:8px;padding:8px 10px;background:rgba(239,68,68,0.1);border-radius:8px;border:1px solid rgba(239,68,68,0.2)"><div style="font-size:11px;font-weight:700;color:var(--danger)">Needs Attention</div><div style="font-size:12px;font-weight:600">'+analysis.worstHabit.name+'</div><div style="font-size:10px;color:var(--text-muted)">'+analysis.worstHabit.rate+'% completion</div></div>'}
+analysis.recommendations.slice(0,2).forEach(function(r){html+='<div style="margin-bottom:6px;padding:6px 8px;background:rgba(99,102,241,0.05);border-radius:6px;border:1px solid rgba(99,102,241,0.1);font-size:11px">'+r.text+'</div>'});
+if(!html)html='<p style="font-size:12px;color:var(--text-muted)">Add habits to get insights!</p>';
+panel.innerHTML=html}
+
+function renderAISuggestions(){
+var panel=document.getElementById('aiSuggestionsPanel');
+var suggestions=aiGenerateSuggestions();
+if(!suggestions.length){panel.innerHTML='<p style="font-size:12px;color:var(--text-muted)">Looking great!</p>';return}
+panel.innerHTML=suggestions.slice(0,3).map(function(s){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-glass);border-radius:6px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;font-size:11px" onclick="aiQuickAction(\'create habit: '+s.name.replace(/'/g,"\\'")+'\')"><span>'+s.icon+'</span><div><div style="font-weight:600">'+s.name+'</div><div style="color:var(--text-muted)">'+s.reason+'</div></div></div>'}).join('')}
+
+function renderAIWeeklyReport(){
+var container=document.getElementById('aiWeeklyReport');
+var report=aiGenerateWeeklyReport();
+var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+html+='<div style="text-align:center;padding:8px;background:var(--bg-glass);border-radius:8px;border:1px solid var(--border)"><div style="font-size:18px;font-weight:800;color:var(--accent)">'+report.totalCompleted+'</div><div style="font-size:10px;color:var(--text-muted)">Done</div></div>';
+html+='<div style="text-align:center;padding:8px;background:var(--bg-glass);border-radius:8px;border:1px solid var(--border)"><div style="font-size:18px;font-weight:800;color:var(--accent)">'+report.avgRate+'%</div><div style="font-size:10px;color:var(--text-muted)">Rate</div></div>';
+html+='</div>';
+if(report.achievements.length)html+='<div style="font-size:11px;padding:6px 8px;background:rgba(16,185,129,0.1);border-radius:6px">'+report.achievements[0]+'</div>';
+container.innerHTML=html}
 
 function renderAITab(){
-renderAIInsights();
-renderAISuggestions();
-renderAIWeeklyReport();
-addChatMessage('Hello! \u{1F44B} I am your AI habit assistant. Ask me anything about your habits, get suggestions, or request a weekly report!','ai')}
-
+renderAIInsights();renderAISuggestions();renderAIWeeklyReport();
+if(aiChatHistory.length===0){
+addChatMessage('Hey! \u{1F44B} I am **Habit AI**, your personal habit coach.\n\nI can help you with:\n\u2022 Track your daily progress\n\u2022 Suggest new habits\n\u2022 Predict your streaks\n\u2022 Give motivation & advice\n\u2022 Create habits from chat\n\nJust type a message or use the quick buttons below!','ai')}}
 // ============ END AI MODULE ============
 document.getElementById('habitModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal()});
 document.getElementById('noteModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeNoteModal()});
