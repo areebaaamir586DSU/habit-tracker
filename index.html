@@ -492,6 +492,45 @@ canvas{width:100%!important;height:100%!important}
 .voice-ctrl-btn.mic{width:56px;height:56px;font-size:24px;border-color:var(--accent)}
 .voice-ctrl-btn.mic.recording{background:linear-gradient(135deg,#ef4444,#dc2626);border-color:#ef4444;color:white;animation:micPulse 1s ease-in-out infinite}
 @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
+.chat-widget-fab{position:fixed;bottom:24px;left:24px;z-index:850;width:60px;height:60px;border-radius:50%;background:var(--gradient-1);border:none;cursor:pointer;box-shadow:0 6px 30px rgba(99,102,241,0.5);transition:all 0.3s ease;display:flex;align-items:center;justify-content:center;font-size:26px;color:white}
+.chat-widget-fab:hover{transform:scale(1.1);box-shadow:0 8px 40px rgba(99,102,241,0.6)}
+.chat-widget-fab .badge{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid white;display:none}
+.chat-widget-fab .badge.show{display:flex}
+.chat-panel{position:fixed;bottom:96px;left:24px;width:400px;height:560px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,0.3);z-index:860;display:none;flex-direction:column;overflow:hidden;animation:chatPanelIn 0.3s ease}
+.chat-panel.open{display:flex}
+@keyframes chatPanelIn{from{opacity:0;transform:translateY(20px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.chat-panel-header{padding:16px 20px;background:var(--gradient-1);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.chat-panel-header .avatar{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:20px}
+.chat-panel-header .info{flex:1}
+.chat-panel-header .info h4{font-size:15px;font-weight:700;color:white}
+.chat-panel-header .info p{font-size:11px;color:rgba(255,255,255,0.8)}
+.chat-panel-header .online-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,0.5);margin-right:4px;display:inline-block}
+.chat-panel-header .close-btn{background:none;border:none;color:white;font-size:18px;cursor:pointer;padding:4px;border-radius:8px}
+.chat-panel-header .close-btn:hover{background:rgba(255,255,255,0.2)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.55;animation:aiMsgIn 0.3s ease;word-wrap:break-word}
+.chat-msg.user{align-self:flex-end;background:var(--gradient-1);color:white;border-bottom-right-radius:4px}
+.chat-msg.ai{align-self:flex-start;background:var(--bg-glass);border:1px solid var(--border);color:var(--text-primary);border-bottom-left-radius:4px}
+.chat-msg.ai .chat-msg-header{display:flex;align-items:center;gap:5px;margin-bottom:4px;font-size:10px;color:var(--accent);font-weight:700}
+.chat-msg.system{align-self:center;background:rgba(99,102,241,0.08);border:1px dashed var(--border);color:var(--text-muted);font-size:11px;text-align:center;padding:6px 14px;border-radius:20px;max-width:90%}
+.chat-msg code{background:rgba(99,102,241,0.1);padding:1px 4px;border-radius:3px;font-size:12px}
+.chat-msg strong{font-weight:700}
+.chat-quick-replies{padding:8px 16px;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border);flex-shrink:0}
+.chat-quick-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg-glass);color:var(--text-secondary);font-size:11px;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;font-family:inherit}
+.chat-quick-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(99,102,241,0.05)}
+.chat-input-area{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0}
+.chat-input-area input{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:24px;font-size:13px;background:var(--bg-primary);color:var(--text-primary);font-family:inherit;outline:none;transition:border-color 0.2s}
+.chat-input-area input:focus{border-color:var(--accent)}
+.chat-input-area .send-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--gradient-1);color:white;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:var(--transition);flex-shrink:0}
+.chat-input-area .send-btn:hover{transform:scale(1.08)}
+.chat-input-area .send-btn:disabled{opacity:0.5;cursor:not-allowed}
+.chat-typing{padding:4px 16px 8px;display:none;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+.chat-typing.show{display:flex}
+.chat-typing-dots{display:flex;gap:3px}
+.chat-typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:aiTypingDot 1.4s infinite ease-in-out}
+.chat-typing-dots span:nth-child(2){animation-delay:0.2s}
+.chat-typing-dots span:nth-child(3){animation-delay:0.4s}
+@media(max-width:480px){.chat-panel{left:8px;right:8px;width:auto;bottom:88px;height:70vh}.chat-widget-fab{bottom:16px;left:16px}}
 </style>
 </head>
 <body>
@@ -1108,6 +1147,37 @@ canvas{width:100%!important;height:100%!important}
 </div>
 
 <button class="voice-assistant-fab" id="voiceFab" onclick="toggleVoicePanel()" title="AI Voice Assistant">&#129302;</button>
+
+<div class="chat-panel" id="chatPanel">
+<div class="chat-panel-header">
+<div class="avatar">&#129302;</div>
+<div class="info"><h4>Habit AI</h4><p><span class="online-dot"></span>Online now</p></div>
+<button class="close-btn" onclick="toggleChatPanel()">&#10005;</button>
+</div>
+<div class="chat-messages" id="chatMessages"></div>
+<div class="chat-typing" id="chatTyping">
+<div class="chat-typing-dots"><span></span><span></span><span></span></div> Habit AI is typing...
+</div>
+<div class="chat-quick-replies" id="chatQuickReplies">
+<button class="chat-quick-btn" onclick="chatQuickSend('How are my habits today?')">Today's status</button>
+<button class="chat-quick-btn" onclick="chatQuickSend('Suggest new habits')">Suggest habits</button>
+<button class="chat-quick-btn" onclick="chatQuickSend('Give me motivation')">Motivate me</button>
+<button class="chat-quick-btn" onclick="chatQuickSend('Show weekly report')">Weekly report</button>
+<button class="chat-quick-btn" onclick="chatQuickSend('Predict my streaks')">Predict streaks</button>
+<button class="chat-quick-btn" onclick="chatQuickSend('What should I work on?')">Improve</button>
+<button class="chat-quick-btn" onclick="chatQuickSend('Tell me a joke')">Joke</button>
+<button class="chat-quick-btn" onclick="chatQuickSend('What level am I?')">My level</button>
+</div>
+<div class="chat-input-area">
+<input type="text" id="chatInput" placeholder="Ask me anything about your habits..." onkeydown="if(event.key==='Enter')chatSendMsg()">
+<button class="send-btn" id="chatSendBtn" onclick="chatSendMsg()">&#10148;</button>
+</div>
+</div>
+
+<button class="chat-widget-fab" id="chatFab" onclick="toggleChatPanel()" title="Chat with AI">
+&#128172;
+<div class="badge" id="chatBadge">1</div>
+</button>
 </div>
 <script>
 var profiles=JSON.parse(localStorage.getItem('profiles'))||null;
@@ -1965,6 +2035,204 @@ addVoiceMessage('Chat cleared. Tap the microphone to start a new conversation!',
 if(voiceSynth){voiceSynth.onvoiceschanged=function(){voiceSynth.getVoices()}}
 
 // ============ END VOICE ASSISTANT MODULE ============
+
+// ============ FLOATING CHAT WIDGET MODULE ============
+var chatPanelOpen=false;
+var chatHistory=JSON.parse(localStorage.getItem('chatHistory'))||[];
+var chatContext={};
+
+function toggleChatPanel(){
+chatPanelOpen=!chatPanelOpen;
+var panel=document.getElementById('chatPanel');
+var fab=document.getElementById('chatFab');
+var badge=document.getElementById('chatBadge');
+if(chatPanelOpen){panel.classList.add('open');fab.style.display='none';badge.classList.remove('show');if(chatHistory.length===0){chatAddSystemMsg('Welcome! I am your AI habit coach. Ask me anything!');chatAddAIMsg('Hey! \u{1F44B} I am **Habit AI**.\n\nI can help you with:\n\u2022 Track your daily progress\n\u2022 Suggest new habits\n\u2022 Predict your streaks\n\u2022 Give motivation\n\u2022 Create habits from chat\n\u2022 Tell jokes\n\nJust type a message or tap a quick reply!')}}
+else{panel.classList.remove('open');fab.style.display='flex'}}
+
+function chatAddMsg(text,sender){
+var container=document.getElementById('chatMessages');
+var div=document.createElement('div');
+div.className='chat-msg '+(sender==='user'?'user':sender==='system'?'system':'ai');
+if(sender==='ai'){div.innerHTML='<div class="chat-msg-header">&#129302; Habit AI</div>'+chatFormatMd(text)}
+else{div.textContent=text}
+container.appendChild(div);
+container.scrollTop=container.scrollHeight;
+chatHistory.push({sender:sender,text:text,time:Date.now()});
+localStorage.setItem('chatHistory',JSON.stringify(chatHistory.slice(-100)))}
+
+function chatAddAIMsg(text){chatAddMsg(text,'ai')}
+function chatAddSystemMsg(text){chatAddMsg(text,'system')}
+
+function chatFormatMd(text){
+return text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`(.*?)`/g,'<code>$1</code>').replace(/\n/g,'<br>')}
+
+function chatSendMsg(){
+var input=document.getElementById('chatInput');
+var msg=input.value.trim();
+if(!msg)return;
+input.value='';
+chatAddMsg(msg,'user');
+chatShowTyping();
+setTimeout(function(){
+chatHideTyping();
+var response=chatGetResponse(msg);
+chatAddAIMsg(response);
+chatUpdateQuickReplies(msg)},600+Math.random()*800)}
+
+function chatQuickSend(msg){
+document.getElementById('chatInput').value=msg;
+chatSendMsg()}
+
+function chatShowTyping(){document.getElementById('chatTyping').classList.add('show')}
+function chatHideTyping(){document.getElementById('chatTyping').classList.remove('show')}
+
+function chatUpdateQuickReplies(lastMsg){
+var container=document.getElementById('chatQuickReplies');
+var lower=lastMsg.toLowerCase();
+var replies=[];
+if(lower.match(/status|today|how/)){replies=['Complete all today','Show streaks','What level am I?']}
+else if(lower.match(/suggest|recommend/)){replies=['Create habit: exercise','Create habit: read','Show more suggestions']}
+else if(lower.match(/motivat|inspire/)){replies=['Tell me a joke','Show my progress','What should I work on?']}
+else if(lower.match(/streak|predict/)){replies=['Show weekly report','Best time to do habits','Analyze patterns']}
+else if(lower.match(/create|habit/)){replies=['Create habit: meditate','Create habit: drink water','Show all habits']}
+else{replies=['Today\'s status','Suggest habits','Motivate me','Weekly report','Predict streaks','What to improve','Joke','My level']}
+container.innerHTML=replies.map(function(r){return '<button class="chat-quick-btn" onclick="chatQuickSend(\''+r.replace(/'/g,"\\'")+'\')">'+r+'</button>'}).join('')}
+
+function chatGetResponse(msg){
+var lower=msg.toLowerCase();
+var today=formatDate(new Date());
+var active=habits.filter(function(h){return shouldTrackToday(h,new Date())});
+var completed=active.filter(function(h){return h.completions&&h.completions[today]});
+var incomplete=active.filter(function(h){return !h.completions||!h.completions[today]});
+var analysis=aiAnalyzePatterns();
+var lvl=getLevelInfo();
+
+if(lower.match(/^(hello|hi|hey|good morning|good evening|yo|sup)/)){
+return 'Hey! \u{1F44B} You have '+habits.length+' habits, '+completed.length+'/'+active.length+' done today. Level '+lvl.level+' ('+lvl.title+'). How can I help?'}
+
+if(lower.match(/how.*(habit|doing|today|status|progress)/i)||lower.match(/^(what|show).*(status|progress)/i)){
+var pct=active.length>0?Math.round(completed.length/active.length*100):0;
+var r='\ud83d\udcca **Today\'s Status**\n\n';
+r+='\u2705 Completed: **'+completed.length+'/'+active.length+'** ('+pct+'%)\n';
+r+='\u{1F525} Best streak: **'+getBestStreak()+' days**\n';
+r+='\u2b50 Level: **'+lvl.level+'** ('+xp+' XP)\n';
+r+='\u{1F6E1}\uFE0F Freezes: **'+streakFreezes+'/3**\n\n';
+if(incomplete.length>0){r+='**Still to do:**\n';incomplete.forEach(function(h){r+=' \u2022 '+h.icon+' '+h.name+'\n'})}
+else if(active.length>0){r+='\ud83c\udf1f All habits completed today! Perfect day!'}
+else{r+='No habits scheduled for today.'}
+return r}
+
+if(lower.match(/motivat|encourag|inspire|pump|boost/i)){
+var quotes=['Every small step counts towards your bigger goal!','Consistency beats intensity. Show up daily!','You are building habits that will define your future.','Progress, not perfection. Keep going!','You have completed **'+getTotalCompletions()+'** habits so far!'];
+var q=quotes[Math.floor(Math.random()*quotes.length)];
+if(incomplete.length>0)q+='\n\nYou have **'+incomplete.length+'** habits left today. You can do it!';
+return q}
+
+if(lower.match(/suggest|recommend|add.*habit|new.*habit|what.*should/i)){
+var suggestions=aiGenerateSuggestions();
+if(suggestions.length){var r='\ud83c\udfaf **Smart Suggestions**\n\n';suggestions.forEach(function(s,i){r+=(i+1)+'. '+s.icon+' **'+s.name+'** \u2014 '+s.reason+'\n'});r+='\nSay "create habit: [name]" to add one!';return r}
+return 'You have great habit coverage! Keep it up!'}
+
+if(lower.match(/weekly.*report|week.*summary|report|summary/i)){
+var r=aiGenerateWeeklyReport();
+var resp='\ud83d\udcca **Weekly Report**\n\n';
+resp+='\u2705 Completed: **'+r.totalCompleted+'**\n';
+resp+='\ud83d\udcc8 Avg rate: **'+r.avgRate+'%**\n';
+resp+='\ud83c\udfc6 Best day: **'+r.bestDay+'**\n';
+resp+='\u26a0\ufe0f Weakest: **'+r.worstDay+'**\n';
+resp+='\ud83c\udfc5 Top habit: **'+r.topHabit+'**\n';
+if(r.achievements.length){resp+='\n'+r.achievements[0]}
+return resp}
+
+if(lower.match(/predict|forecast|future|streak.*predict/i)){
+if(!habits.length)return 'Add some habits first!';
+var r='\ud83e\udd2e **Streak Predictions**\n\n';
+habits.slice(0,4).forEach(function(h){var p=aiPredictStreak(h);r+=h.icon+' **'+h.name+'**: '+p.currentStreak+'d now, predicted max **'+p.predictedMax+'d** ('+p.confidence+'% confidence)\n'});
+return r}
+
+if(lower.match(/best.*time|when.*do|optimal/i)){
+var tod=analysis.patterns.timeOfDay;
+var best=Object.entries(tod).sort(function(a,b){return b[1]-a[1]})[0];
+if(best){var r='\ud83d\udd52 **Your Best Time: '+best[0]+'**\n\n';Object.entries(tod).sort(function(a,b){return b[1]-a[1]}).forEach(function(e){r+=e[0]+': \u2588'.repeat(Math.round(e[1]/(best[1]||1)*8))+' ('+e[1]+')\n'});r+='\nSchedule important habits during **'+best[0]+'**!';return r}
+return 'Complete some habits first and I will analyze your best time.'}
+
+if(lower.match(/analyz|pattern|insight|trend/i)){
+var r='\ud83d\udcc8 **Pattern Analysis**\n\n';
+if(analysis.bestHabit)r+='\u{1F3C6} Best: **'+analysis.bestHabit.name+'** ('+analysis.bestHabit.rate+'%)\n';
+if(analysis.worstHabit&&analysis.worstHabit.rate<80)r+='\u26a0\ufe0f Needs work: **'+analysis.worstHabit.name+'** ('+analysis.worstHabit.rate+'%)\n';
+r+='\ud83d\udcca Avg: **'+analysis.avgRate+'%** | Total: **'+analysis.totalCompletions+'**\n';
+return r}
+
+if(lower.match(/what.*(work on|improve|fix|better)/i)){
+var r='\ud83d\udca1 **How to Improve**\n\n';
+var found=false;
+if(analysis.worstHabit&&analysis.worstHabit.rate<60){r+='\u2022 **'+analysis.worstHabit.name+'** ('+analysis.worstHabit.rate+'%) — try breaking it into smaller steps\n';found=true}
+var lowStreak=habits.filter(function(h){return getCurrentStreak(h)===0});
+if(lowStreak.length>0){r+='\u2022 '+lowStreak.length+' habits with no streak — focus on consistency\n';found=true}
+if(!found){r+='You are doing great! Try adding a new challenge or category.'}
+return r}
+
+if(lower.match(/streak/i)){
+if(lower.match(/freeze|protect/))return 'You have **'+streakFreezes+'** streak freeze'+(streakFreezes!==1?'s':'')+' (max 3). Earn more at 1000 XP milestones!';
+var r='\ud83d\udd25 **Streaks**\n\n';
+habits.forEach(function(h){r+=h.icon+' '+h.name+': **'+getCurrentStreak(h)+' days** (best: '+getBestStreakForHabit(h)+')\n'});
+r+='\nOverall best: **'+getBestStreak()+' days**';
+return r}
+
+if(lower.match(/level|xp|experience/i)){
+var info=getLevelInfo();
+var prog=info.needed>info.currentMin?Math.round((info.xp-info.currentMin)/(info.needed-info.currentMin)*100):100;
+return '\u2b50 **Level '+info.level+'** ('+info.title+')\n\nXP: **'+info.xp+' / '+info.needed+'** ('+prog+'%)\n'+(info.level>=10?'Max level! Incredible!':'Next: Level '+(info.level+1))}
+
+if(lower.match(/perfect|all.*done/i)){
+var done=active.filter(function(h){return h.completions&&h.completions[today]});
+if(done.length===active.length&&active.length>0)return '\u{1F389} **PERFECT DAY!** All '+active.length+' habits done! Amazing!';
+return 'You have **'+(active.length-done.length)+'** habits left. '+((active.length-done.length<=2)?'Almost there!':'Keep going!')}
+
+if(lower.match(/create habit|add habit|new habit/)){
+var desc=msg.replace(/^(create|add|new)\s+habit\s*:?\s*/i,'');
+if(desc.length>3){var p=aiParseNLPHabit(desc);
+return '**Creating habit:**\n\u2022 Name: '+p.name+'\n\u2022 Category: '+p.category+'\n\u2022 Frequency: '+p.frequency+'\n\u2022 Goal: '+p.goalText+'\n\nSay **"confirm create"** to save it, or describe a different habit.'}
+return 'Describe the habit! Example: "Create habit: Read 20 pages daily"'}
+
+if(lower.match(/confirm create|save habit|yes create/i)){
+var lastCreate=chatHistory.slice().reverse().find(function(m){return m.text.indexOf('Creating habit')!==-1});
+if(lastCreate){
+var lines=lastCreate.text.split('\n');
+var nameLine=lines.find(function(l){return l.indexOf('Name:')!==-1});
+if(nameLine){
+var name=nameLine.split('Name:')[1].trim();
+habits.push({id:Date.now().toString(),name:name,description:'Created via Chat AI',category:'other',priority:'medium',frequency:'daily',goal:7,goalText:'1 time',reminder:'09:00',color:habitColors[Math.floor(Math.random()*habitColors.length)],icon:'\u{1F4CB}',restDays:[],tags:[],completions:{},createdAt:new Date().toISOString(),order:habits.length,freezesUsed:0});
+addXP(30);saveProfileData();renderAll();
+return '\u2705 **Habit Created!** '+name+' — +30 XP! You can now track it in the Habits tab.'}}}
+
+if(lower.match(/delete|remove habit/i)){
+var name=cmd.replace(/^(delete|remove)\s+(habit)?\s*/i,'');
+var h=habits.find(function(h){return h.name.toLowerCase().indexOf(name.toLowerCase())!==-1});
+if(h){habits=habits.filter(function(x){return x.id!==h.id});saveProfileData();renderAll();return '\u2705 Deleted: '+h.name}
+return 'Could not find that habit.'}
+
+if(lower.match(/joke|funny|laugh/i)){
+var jokes=['Why do programmers prefer dark mode? Because light attracts bugs! \u{1F41B}','Why don\'t scientists trust atoms? Because they make up everything! \u{1F9EA}','What do you call a fake noodle? An impasta! \u{1F35D}','I used to hate facial hair, but then it grew on me. \u{1F9D7}','Why did the scarecrow win an award? He was outstanding in his field! \u{1F33E}'];
+return jokes[Math.floor(Math.random()*jokes.length)]+'\n\nNow let us build those habits! \u{1F4AA}'}
+
+if(lower.match(/help|what can you do/i)){
+return '\ud83e\udd16 **Chat Commands**\n\n\u2022 "How are my habits today?"\n\u2022 "Suggest new habits"\n\u2022 "Give me motivation"\n\u2022 "Show weekly report"\n\u2022 "Predict my streaks"\n\u2022 "Analyze my patterns"\n\u2022 "What should I work on?"\n\u2022 "Create habit: [name]"\n\u2022 "What level am I?"\n\u2022 "Tell me a joke"\n\u2022 "What is my best time?"\n\nJust type naturally!'}
+
+if(lower.match(/thank|thanks/i))return 'You are welcome! \u{1F60A} Keep building those great habits!'
+
+if(lower.match(/bye|goodbye|see you/i))return 'Goodbye! \u{1F44B} Come back anytime. Your habits are waiting!'
+
+// Contextual default
+var tips=['Here is a tip: Habit stacking works great! Add a new habit right after an existing one.','Pro tip: Start with a 2-minute version of any habit.','Fun fact: It takes 66 days on average to form a new habit.','Advice: Track your habits at the same time each day.'];
+var response='I heard: **"'+msg+'"\n\n'+tips[Math.floor(Math.random()*tips.length)]+'\n\nTry asking about your status, streaks, or say **"help"** for commands!';
+return response}
+
+// Show badge if panel closed and no activity
+if(!chatPanelOpen&&chatHistory.length===0){
+setTimeout(function(){var badge=document.getElementById('chatBadge');if(badge&&!chatPanelOpen){badge.classList.add('show');badge.textContent='1'}},3000)}
+
+// ============ END CHAT WIDGET MODULE ============
 document.getElementById('habitModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal()});
 document.getElementById('noteModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeNoteModal()});
 document.getElementById('bundleModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeBundleModal()});
