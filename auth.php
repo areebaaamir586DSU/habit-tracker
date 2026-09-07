@@ -38,6 +38,41 @@ if ($action === 'signup') {
 
         $db = getDb();
 
+        $cols = [];
+        $result = $db->query("PRAGMA table_info(users)");
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $cols[] = $row['name'];
+        }
+        if (!in_array('verify_token', $cols)) {
+            $db->exec("ALTER TABLE users ADD COLUMN verify_token TEXT");
+        }
+        if (!in_array('email_verified', $cols)) {
+            $db->exec("ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0");
+        }
+        if (!in_array('reset_token', $cols)) {
+            $db->exec("ALTER TABLE users ADD COLUMN reset_token TEXT");
+        }
+        if (!in_array('reset_expires', $cols)) {
+            $db->exec("ALTER TABLE users ADD COLUMN reset_expires TEXT");
+        }
+
+        $udCols = [];
+        $udResult = $db->query("PRAGMA table_info(user_data)");
+        while ($row = $udResult->fetchArray(SQLITE3_ASSOC)) {
+            $udCols[] = $row['name'];
+        }
+        if (empty($udCols)) {
+            $db->exec("CREATE TABLE IF NOT EXISTS user_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                data_key TEXT NOT NULL,
+                data_value TEXT NOT NULL DEFAULT '',
+                updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(user_id, data_key)
+            )");
+        }
+
         $stmt = $db->prepare('SELECT id FROM users WHERE username = :u OR email = :e');
         $stmt->bindValue(':u', $username, SQLITE3_TEXT);
         $stmt->bindValue(':e', $email, SQLITE3_TEXT);
