@@ -5,116 +5,121 @@ require_once __DIR__ . '/db.php';
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'signup') {
-    checkRateLimit('signup');
-    verifyCsrf();
+    try {
+        checkRateLimit('signup');
+        verifyCsrf();
 
-    $username = trim($_POST['username'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirm = $_POST['confirm_password'] ?? '';
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
 
-    if (empty($username) || empty($email) || empty($password)) {
-        jsonError('All fields are required');
-    }
-    if (strlen($username) < 3 || strlen($username) > 30) {
-        jsonError('Username must be 3-30 characters');
-    }
-    if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-        jsonError('Username can only contain letters, numbers, and underscores');
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        jsonError('Invalid email address');
-    }
-    if (strlen($password) < 8) {
-        jsonError('Password must be at least 8 characters');
-    }
-    if (!preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
-        jsonError('Password must contain uppercase, lowercase, and a number');
-    }
-    if ($password !== $confirm) {
-        jsonError('Passwords do not match');
-    }
+        if (empty($username) || empty($email) || empty($password)) {
+            jsonError('All fields are required');
+        }
+        if (strlen($username) < 3 || strlen($username) > 30) {
+            jsonError('Username must be 3-30 characters');
+        }
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+            jsonError('Username can only contain letters, numbers, and underscores');
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            jsonError('Invalid email address');
+        }
+        if (strlen($password) < 8) {
+            jsonError('Password must be at least 8 characters');
+        }
+        if (!preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+            jsonError('Password must contain uppercase, lowercase, and a number');
+        }
+        if ($password !== $confirm) {
+            jsonError('Passwords do not match');
+        }
 
-    $db = getDb();
+        $db = getDb();
 
-    $stmt = $db->prepare('SELECT id FROM users WHERE username = :u OR email = :e');
-    $stmt->bindValue(':u', $username, SQLITE3_TEXT);
-    $stmt->bindValue(':e', $email, SQLITE3_TEXT);
-    $result = $stmt->execute();
-    if ($result->fetchArray()) {
-        $db->close();
-        jsonError('Username or email already exists');
-    }
+        $stmt = $db->prepare('SELECT id FROM users WHERE username = :u OR email = :e');
+        $stmt->bindValue(':u', $username, SQLITE3_TEXT);
+        $stmt->bindValue(':e', $email, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if ($result->fetchArray()) {
+            $db->close();
+            jsonError('Username or email already exists');
+        }
 
-    $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-    $verifyToken = bin2hex(random_bytes(32));
+        $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
+        $verifyToken = bin2hex(random_bytes(32));
 
-    $stmt = $db->prepare('INSERT INTO users (username, email, password_hash, email_verified, verify_token) VALUES (:u, :e, :p, 0, :t)');
-    $stmt->bindValue(':u', $username, SQLITE3_TEXT);
-    $stmt->bindValue(':e', $email, SQLITE3_TEXT);
-    $stmt->bindValue(':p', $hash, SQLITE3_TEXT);
-    $stmt->bindValue(':t', $verifyToken, SQLITE3_TEXT);
-    $stmt->execute();
-
-    $userId = $db->lastInsertRowID();
-
-    $defaultProfile = json_encode([[
-        'id' => 'default',
-        'name' => $username,
-        'initial' => strtoupper(substr($username, 0, 1)),
-        'createdAt' => date('c')
-    ]]);
-
-    $defaultSettings = json_encode([
-        'theme' => 'light',
-        'reminders' => false,
-        'reminderTime' => '09:00',
-        'sound' => true,
-        'animations' => true,
-        'accentColor' => '#6366f1',
-        'locationEnabled' => false,
-        'cloudUrl' => '',
-        'cloudToken' => '',
-        'autoSync' => false
-    ]);
-
-    $defaultQuests = json_encode(['daily' => [], 'date' => date('Y-m-d')]);
-    $defaultChallenges = json_encode(['active' => [], 'completed' => []]);
-
-    $initData = [
-        'habits' => '[]',
-        'xp' => '0',
-        'freezes' => '0',
-        'bundles' => '[]',
-        'settings' => $defaultSettings,
-        'profiles' => $defaultProfile,
-        'currentProfile' => 'default',
-        'quests' => $defaultQuests,
-        'challenges' => $defaultChallenges,
-        'moodData' => '[]',
-        'sleepData' => '[]',
-        'waterData' => '{}',
-        'penalties' => '{}',
-        'tags' => '[]',
-        'partnerData' => 'null',
-        'chatHistory' => '[]'
-    ];
-
-    $stmt = $db->prepare('INSERT INTO user_data (user_id, data_key, data_value) VALUES (:uid, :k, :v)');
-    foreach ($initData as $key => $value) {
-        $stmt->bindValue(':uid', $userId, SQLITE3_INTEGER);
-        $stmt->bindValue(':k', $key, SQLITE3_TEXT);
-        $stmt->bindValue(':v', $value, SQLITE3_TEXT);
+        $stmt = $db->prepare('INSERT INTO users (username, email, password_hash, email_verified, verify_token) VALUES (:u, :e, :p, 0, :t)');
+        $stmt->bindValue(':u', $username, SQLITE3_TEXT);
+        $stmt->bindValue(':e', $email, SQLITE3_TEXT);
+        $stmt->bindValue(':p', $hash, SQLITE3_TEXT);
+        $stmt->bindValue(':t', $verifyToken, SQLITE3_TEXT);
         $stmt->execute();
+
+        $userId = $db->lastInsertRowID();
+
+        $defaultProfile = json_encode([[
+            'id' => 'default',
+            'name' => $username,
+            'initial' => strtoupper(substr($username, 0, 1)),
+            'createdAt' => date('c')
+        ]]);
+
+        $defaultSettings = json_encode([
+            'theme' => 'light',
+            'reminders' => false,
+            'reminderTime' => '09:00',
+            'sound' => true,
+            'animations' => true,
+            'accentColor' => '#6366f1',
+            'locationEnabled' => false,
+            'cloudUrl' => '',
+            'cloudToken' => '',
+            'autoSync' => false
+        ]);
+
+        $defaultQuests = json_encode(['daily' => [], 'date' => date('Y-m-d')]);
+        $defaultChallenges = json_encode(['active' => [], 'completed' => []]);
+
+        $initData = [
+            'habits' => '[]',
+            'xp' => '0',
+            'freezes' => '0',
+            'bundles' => '[]',
+            'settings' => $defaultSettings,
+            'profiles' => $defaultProfile,
+            'currentProfile' => 'default',
+            'quests' => $defaultQuests,
+            'challenges' => $defaultChallenges,
+            'moodData' => '[]',
+            'sleepData' => '[]',
+            'waterData' => '{}',
+            'penalties' => '{}',
+            'tags' => '[]',
+            'partnerData' => 'null',
+            'chatHistory' => '[]'
+        ];
+
+        $stmt = $db->prepare('INSERT INTO user_data (user_id, data_key, data_value) VALUES (:uid, :k, :v)');
+        foreach ($initData as $key => $value) {
+            $stmt->bindValue(':uid', $userId, SQLITE3_INTEGER);
+            $stmt->bindValue(':k', $key, SQLITE3_TEXT);
+            $stmt->bindValue(':v', $value, SQLITE3_TEXT);
+            $stmt->execute();
+        }
+
+        $db->close();
+
+        $_SESSION['user_id'] = $userId;
+        $_SESSION['username'] = $username;
+        $_SESSION['created'] = time();
+
+        jsonResponse(['success' => true, 'redirect' => BASE_URL . '/index.php']);
+    } catch (Exception $e) {
+        error_log('[Signup Error] ' . $e->getMessage());
+        jsonError('Signup failed. Please try again.');
     }
-
-    $db->close();
-
-    $_SESSION['user_id'] = $userId;
-    $_SESSION['username'] = $username;
-    $_SESSION['created'] = time();
-
-    jsonResponse(['success' => true, 'redirect' => BASE_URL . '/index.php']);
 
 } elseif ($action === 'login') {
     checkRateLimit('login');
