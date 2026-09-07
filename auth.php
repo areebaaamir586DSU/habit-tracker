@@ -166,6 +166,10 @@ if ($action === 'signup') {
 } elseif ($action === 'check') {
     if (isset($_SESSION['user_id'])) {
         jsonResponse(['loggedIn' => true, 'username' => $_SESSION['username']]);
+    } else {
+        jsonResponse(['loggedIn' => false]);
+    }
+
 } elseif ($action === 'request_reset') {
     checkRateLimit('reset');
     $email = trim($_POST['email'] ?? '');
@@ -179,17 +183,14 @@ if ($action === 'signup') {
     $result = $stmt->execute();
     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-    // Always show success to prevent email enumeration
     if ($user) {
         $resetToken = bin2hex(random_bytes(32));
-        $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour
+        $expires = date('Y-m-d H:i:s', time() + 3600);
         $stmt = $db->prepare('UPDATE users SET reset_token = :t, reset_expires = :e WHERE id = :id');
         $stmt->bindValue(':t', $resetToken, SQLITE3_TEXT);
         $stmt->bindValue(':e', $expires, SQLITE3_TEXT);
         $stmt->bindValue(':id', $user['id'], SQLITE3_INTEGER);
         $stmt->execute();
-
-        // Log reset link for dev (no email service configured)
         error_log("[Password Reset] Email: {$email}, Token: {$resetToken}");
     }
     $db->close();
@@ -226,10 +227,6 @@ if ($action === 'signup') {
     $stmt->execute();
     $db->close();
     jsonResponse(['success' => true, 'message' => 'Password reset successfully. You can now log in.']);
-
-} else {
-        jsonResponse(['loggedIn' => false]);
-    }
 
 } elseif ($action === 'change_password') {
     verifyCsrf();

@@ -13,7 +13,7 @@ if (empty($_SESSION['fingerprint'])) {
 }
 
 define('DB_PATH', __DIR__ . '/data/habit_tracker.db');
-define('BASE_URL', '/habit-tracker');
+define('BASE_URL', rtrim(dirname($_SERVER['SCRIPT_NAME']), '/'));
 define('RATE_LIMIT_FILE', __DIR__ . '/data/rate_limits.json');
 define('RATE_LIMIT_MAX', 10); // max attempts
 define('RATE_LIMIT_WINDOW', 900); // 15 minutes
