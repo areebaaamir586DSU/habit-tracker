@@ -151,9 +151,9 @@ if ($action === 'signup') {
         $_SESSION['created'] = time();
 
         jsonResponse(['success' => true, 'redirect' => BASE_URL . '/index.php']);
-    } catch (Exception $e) {
-        error_log('[Signup Error] ' . $e->getMessage());
-        jsonError('Signup failed. Please try again.');
+    } catch (\Throwable $e) {
+        error_log('[Signup Error] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+        jsonError('Signup failed: ' . $e->getMessage());
     }
 
 } elseif ($action === 'login') {
